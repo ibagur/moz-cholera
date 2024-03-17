@@ -1,9 +1,7 @@
-list_of_packages <- package_list <- c("here", "tidyverse", "openxlsx", "sf", "tmap", "leaflegend",  "plotly", "rsconnect", "extrafont", "fuzzyjoin", "showtext", "webshot2", "ggrepel", "reactable", "reactablefmtr")
-
-new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
-if(length(new_packages)) install.packages(new_packages)
-
-
+# list_of_packages <- package_list <- c("here", "tidyverse", "openxlsx", "sf", "tmap", "leaflegend",  "plotly", "rsconnect", "extrafont", "fuzzyjoin", "showtext", "webshot2", "ggrepel", "reactable", "reactablefmtr")
+# 
+# new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
+# if(length(new_packages)) install.packages(new_packages)
 
 # load here library to handle relative paths from project ROOT
 library(here)

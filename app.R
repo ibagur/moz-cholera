@@ -64,12 +64,12 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   # Default paths for images
-  defaultMapPath <- here("R", "moz-cholera", "plots", "cholera_map.png")
-  defaultPlot2Path <- here("R", "moz-cholera", "plots", "province_daily_trend_plot.png")
-  defaultPlot3Path <- here("R", "moz-cholera", "plots", "province_weekly_bar_plot.png")
-  defaultPlot4Path <- here("R", "moz-cholera", "plots", "district_biweekly_plot.png")
-  defaultPlot5Path <- here("R", "moz-cholera", "plots", "cholera_active_occupancy_district_plot.png")
-  defaultTablePath <- here("R", "moz-cholera", "plots", "cholera_active_occupancy_district_react.png")
+  defaultMapPath <- here("plots", "cholera_map.png")
+  defaultPlot2Path <- here("plots", "province_daily_trend_plot.png")
+  defaultPlot3Path <- here("plots", "province_weekly_bar_plot.png")
+  defaultPlot4Path <- here("plots", "district_biweekly_plot.png")
+  defaultPlot5Path <- here("plots", "cholera_active_occupancy_district_plot.png")
+  defaultTablePath <- here("plots", "cholera_active_occupancy_district_react.png")
   
   # Modify renderImage functions to use default paths
   output$map_png <- renderImage({
@@ -111,7 +111,7 @@ server <- function(input, output) {
     req(input$dataset)  # Ensure a file is uploaded
     
     # Construct the target path dynamically using 'here'
-    targetPath <- here("R", "moz-cholera", "data", input$dataset$name)
+    targetPath <- here("data", input$dataset$name)
     
     # Ensure the directory exists
     dir.create(dirname(targetPath), recursive = TRUE, showWarnings = FALSE)
@@ -129,28 +129,28 @@ server <- function(input, output) {
       incProgress(1/5, detail = "Loading libraries...")
       
       library(here)
-      source(here("R", "_common", "required.R"))
-      source(here("R", "_common", "required-plot.R"))
-      source(here("R", "_common", "utils.R"))
-      source(here("R", "_common", "config.R"))
-      source(here("R", "moz-cholera", paste0("01-", "moz-cholera", "-required.R")))
-      source(here("R", "moz-cholera", paste0("02-", "moz-cholera", "-functions.R")))
-      source(here("R", "moz-cholera", paste0("03-", "moz-cholera", "-config.R")))
+      source(here("_common", "required.R"))
+      source(here("_common", "required-plot.R"))
+      source(here("_common", "utils.R"))
+      source(here("_common", "config.R"))
+      source(here(paste0("01-", "moz-cholera", "-required.R")))
+      source(here(paste0("02-", "moz-cholera", "-functions.R")))
+      source(here(paste0("03-", "moz-cholera", "-config.R")))
       
       incProgress(1/5, detail = "Loading data...")
       
       # 1. Load data
-      source(here("R", "moz-cholera", paste0("04-", "moz-cholera", "-dataload.R")))
+      source(here(paste0("04-", "moz-cholera", "-dataload.R")))
       
       incProgress(1/5, detail = "Processing data...")
       
       # 2. Process data
-      source(here("R", "moz-cholera", paste0("05-", "moz-cholera", "-process.R")))
+      source(here(paste0("05-", "moz-cholera", "-process.R")))
       
       incProgress(1/5, detail = "Building plots...")
       
       # 3. Create the plots
-      source(here("R", "moz-cholera", paste0("07-", "moz-cholera", "-plot.R")))      
+      source(here(paste0("07-", "moz-cholera", "-plot.R")))      
      
       # Finalize the progress bar
       setProgress(message = "Process completed.")
@@ -158,27 +158,27 @@ server <- function(input, output) {
   
     # Assume the plot is saved as 'plot.pdf' in a known directory
     plotPath1 <- reactive({
-      here("R", "moz-cholera", "plots", "cholera_map.pdf")
+      here("plots", "cholera_map.pdf")
     })
     
     plotPath2 <- reactive({
-      here("R", "moz-cholera", "plots", "province_daily_trend_plot.pdf")
+      here("plots", "province_daily_trend_plot.pdf")
     })
     
     plotPath3 <- reactive({
-      here("R", "moz-cholera", "plots", "province_weekly_bar_plot.pdf")
+      here("plots", "province_weekly_bar_plot.pdf")
     })
     
     plotPath4 <- reactive({
-      here("R", "moz-cholera", "plots", "district_biweekly_plot.pdf")
+      here("plots", "district_biweekly_plot.pdf")
     })
     
     plotPath5 <- reactive({
-      here("R", "moz-cholera", "plots", "cholera_active_occupancy_district_plot.pdf")
+      here("plots", "cholera_active_occupancy_district_plot.pdf")
     })
     
     plotPath6 <- reactive({
-      here("R", "moz-cholera", "plots", "cholera_active_occupancy_district_react.png")
+      here("plots", "cholera_active_occupancy_district_react.png")
     })
     
     # Provide feedback to the user
@@ -192,7 +192,7 @@ server <- function(input, output) {
     # For images
     output$map_png <- renderImage({
       # Return a list containing the image's src and, optionally, height and width
-      list(src = here("R", "moz-cholera", "plots", "cholera_map.png"),
+      list(src = here("plots", "cholera_map.png"),
            width = "100%",  # Optional: Specify width
            #height = 400, # Optional: Specify height,
            alt = "This is alternate text"
@@ -201,7 +201,7 @@ server <- function(input, output) {
     
     output$plot2_png <- renderImage({
       # Return a list containing the image's src and, optionally, height and width
-      list(src = here("R", "moz-cholera", "plots", "province_daily_trend_plot.png"),
+      list(src = here("plots", "province_daily_trend_plot.png"),
            width = "100%",  # Optional: Specify width
            #height = 400, # Optional: Specify height,
            alt = "This is alternate text"
@@ -210,7 +210,7 @@ server <- function(input, output) {
     
     output$plot3_png <- renderImage({
       # Return a list containing the image's src and, optionally, height and width
-      list(src = here("R", "moz-cholera", "plots", "province_weekly_bar_plot.png"),
+      list(src = here("plots", "province_weekly_bar_plot.png"),
            width = "100%",  # Optional: Specify width
            #height = 400, # Optional: Specify height,
            alt = "This is alternate text"
@@ -219,7 +219,7 @@ server <- function(input, output) {
     
     output$plot4_png <- renderImage({
       # Return a list containing the image's src and, optionally, height and width
-      list(src = here("R", "moz-cholera", "plots", "district_biweekly_plot.png"),
+      list(src = here("plots", "district_biweekly_plot.png"),
            width = "100%",  # Optional: Specify width
            #height = 400, # Optional: Specify height,
            alt = "This is alternate text"
@@ -228,7 +228,7 @@ server <- function(input, output) {
     
     output$plot5_png <- renderImage({
       # Return a list containing the image's src and, optionally, height and width
-      list(src = here("R", "moz-cholera", "plots", "cholera_active_occupancy_district_plot.png"),
+      list(src = here("plots", "cholera_active_occupancy_district_plot.png"),
            width = "100%",  # Optional: Specify width
            #height = 400, # Optional: Specify height,
            alt = "This is alternate text"
