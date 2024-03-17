@@ -28,3 +28,4 @@ library(colorspace)
 library(reactable)
 #library(reactablefmtr) # Conflicts with theme element_text margin. Use ad-hoc ::
 library(htmltools)
+library(hrbrthemes)

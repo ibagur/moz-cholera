@@ -21,7 +21,8 @@ ui <- fluidPage(
       uiOutput("downloadButton3"),
       uiOutput("downloadButton4"),
       uiOutput("downloadButton5"),
-      uiOutput("downloadButton6")
+      uiOutput("downloadButton6"),
+      uiOutput("downloadButton7")
     ),
     mainPanel(
       tabsetPanel(
@@ -125,7 +126,7 @@ server <- function(input, output) {
       
       #source(here("R", "moz-cholera", "moz-cholera.R"))
 
-      # 0. Load libraries
+      # 1. Load libraries
       incProgress(1/5, detail = "Loading libraries...")
       
       library(here)
@@ -137,20 +138,25 @@ server <- function(input, output) {
       source(here(paste0("02-", "moz-cholera", "-functions.R")))
       source(here(paste0("03-", "moz-cholera", "-config.R")))
       
+      # 2. Load data
       incProgress(1/5, detail = "Loading data...")
       
-      # 1. Load data
       source(here(paste0("04-", "moz-cholera", "-dataload.R")))
       
+      # 3. Process data
       incProgress(1/5, detail = "Processing data...")
       
-      # 2. Process data
       source(here(paste0("05-", "moz-cholera", "-process.R")))
       
+      # 4. Create the plots
       incProgress(1/5, detail = "Building plots...")
       
-      # 3. Create the plots
       source(here(paste0("07-", "moz-cholera", "-plot.R")))      
+      
+      # 5. Export data
+      incProgress(1/5, detail = "Exporting data...")
+      
+      source(here(paste0("08-", "moz-cholera", "-output.R")))      
      
       # Finalize the progress bar
       setProgress(message = "Process completed.")
@@ -179,6 +185,10 @@ server <- function(input, output) {
     
     plotPath6 <- reactive({
       here("plots", "cholera_active_occupancy_district_react.png")
+    })
+    
+    dataPath1 <- reactive({
+      here("output", "district_daily_export_wide_tbl.xlsx")
     })
     
     # Provide feedback to the user
@@ -271,6 +281,10 @@ server <- function(input, output) {
     output$downloadButton6 <- renderUI({
       downloadButton("downloadPlot6", "Download occupancy table", style = "margin-bottom: 10px;")
     })
+    
+    output$downloadButton7 <- renderUI({
+      downloadButton("downloadData1", "Download daily data Excel", style = "margin-bottom: 10px;")
+    })
 
     # Add this block for the download handler
     output$downloadPlot1 <- downloadHandler(
@@ -324,6 +338,15 @@ server <- function(input, output) {
       },
       content = function(file) {
         file.copy(plotPath6(), file)
+      }
+    )
+    
+    output$downloadData1 <- downloadHandler(
+      filename = function() {
+        "district_daily_export_wide_tbl.xlsx"
+      },
+      content = function(file) {
+        file.copy(dataPath1(), file)
       }
     )
     

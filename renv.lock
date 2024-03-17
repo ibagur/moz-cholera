@@ -643,6 +643,21 @@
       ],
       "Hash": "ab12c7b080a57475248a30f4db6298c0"
     },
+    "crul": {
+      "Package": "crul",
+      "Version": "1.4.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R6",
+        "curl",
+        "httpcode",
+        "jsonlite",
+        "mime",
+        "urltools"
+      ],
+      "Hash": "1eb00a531331c91d970f3af74b75321f"
+    },
     "curl": {
       "Package": "curl",
       "Version": "5.2.1",
@@ -856,21 +871,6 @@
       ],
       "Hash": "fa6dcc3b50ce8c6ad148786ea82fccbe"
     },
-    "emojifont": {
-      "Package": "emojifont",
-      "Version": "0.5.5",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "ggplot2",
-        "proto",
-        "showtext",
-        "sysfonts",
-        "utils"
-      ],
-      "Hash": "10ce040cd4429907a8ce668c0b8c7e55"
-    },
     "estimability": {
       "Package": "estimability",
       "Version": "1.5",
@@ -974,6 +974,26 @@
       ],
       "Hash": "09fb526c49460c4933bc077db6eba924"
     },
+    "fontBitstreamVera": {
+      "Package": "fontBitstreamVera",
+      "Version": "0.1.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "f6068021eff4aba735a9b2353516636c"
+    },
+    "fontLiberation": {
+      "Package": "fontLiberation",
+      "Version": "0.1.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "f918c5e723f86f409912104d5b7a71d6"
+    },
     "fontawesome": {
       "Package": "fontawesome",
       "Version": "0.5.2",
@@ -985,6 +1005,18 @@
         "rlang"
       ],
       "Hash": "c2efdd5f0bcd1ea861c2d4e2a883a67d"
+    },
+    "fontquiver": {
+      "Package": "fontquiver",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "fontBitstreamVera",
+        "fontLiberation"
+      ],
+      "Hash": "fc0f4226379e451057d55419fd31761e"
     },
     "forcats": {
       "Package": "forcats",
@@ -1065,6 +1097,23 @@
       ],
       "Hash": "fc0b272e5847c58cd5da9b20eedbd026"
     },
+    "gdtools": {
+      "Package": "gdtools",
+      "Version": "0.3.7",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "curl",
+        "fontquiver",
+        "gfonts",
+        "htmltools",
+        "systemfonts",
+        "tools"
+      ],
+      "Hash": "b53e23731a5946448ad888efca14d2df"
+    },
     "generics": {
       "Package": "generics",
       "Version": "0.1.3",
@@ -1113,22 +1162,22 @@
       ],
       "Hash": "45aa4def70a402e7d20efde490c13ecb"
     },
-    "ggalluvial": {
-      "Package": "ggalluvial",
-      "Version": "0.12.5",
+    "gfonts": {
+      "Package": "gfonts",
+      "Version": "0.2.0",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
         "R",
-        "dplyr",
-        "ggplot2",
-        "lazyeval",
-        "rlang",
-        "stats",
-        "tidyr",
-        "tidyselect"
+        "crayon",
+        "crul",
+        "glue",
+        "htmltools",
+        "jsonlite",
+        "shiny",
+        "utils"
       ],
-      "Hash": "29bb601821609476215720798eecf979"
+      "Hash": "a535d76cf92645364997a8751396d63b"
     },
     "ggbiplot": {
       "Package": "ggbiplot",
@@ -1200,43 +1249,6 @@
       ],
       "Hash": "384b388bd9155468d2c851846ee69f9f"
     },
-    "ggfun": {
-      "Package": "ggfun",
-      "Version": "0.1.4",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "cli",
-        "ggplot2",
-        "grid",
-        "rlang",
-        "utils"
-      ],
-      "Hash": "91780e07f1d631a1152835b4e25c66b9"
-    },
-    "ggimage": {
-      "Package": "ggimage",
-      "Version": "0.3.3",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "ggfun",
-        "ggplot2",
-        "ggplotify",
-        "grid",
-        "jsonlite",
-        "magick",
-        "methods",
-        "scales",
-        "tibble",
-        "tools",
-        "utils",
-        "withr"
-      ],
-      "Hash": "18c57347f13a654ef8683a6676042624"
-    },
     "ggplot2": {
       "Package": "ggplot2",
       "Version": "3.5.0",
@@ -1261,22 +1273,6 @@
         "withr"
       ],
       "Hash": "52ef83f93f74833007f193b2d4c159a2"
-    },
-    "ggplotify": {
-      "Package": "ggplotify",
-      "Version": "0.1.2",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "ggplot2",
-        "grDevices",
-        "graphics",
-        "grid",
-        "gridGraphics",
-        "yulab.utils"
-      ],
-      "Hash": "1547863db3b472cf7181973acf649f1a"
     },
     "ggpubr": {
       "Package": "ggpubr",
@@ -1424,18 +1420,6 @@
       ],
       "Hash": "7d7f283939f563670a697165b2cf5560"
     },
-    "gridGraphics": {
-      "Package": "gridGraphics",
-      "Version": "0.5-1",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "grDevices",
-        "graphics",
-        "grid"
-      ],
-      "Hash": "5b79228594f02385d4df4979284879ae"
-    },
     "gridtext": {
       "Package": "gridtext",
       "Version": "0.1.5",
@@ -1527,6 +1511,25 @@
       ],
       "Hash": "b59377caa7ed00fa41808342002138f9"
     },
+    "hrbrthemes": {
+      "Package": "hrbrthemes",
+      "Version": "0.8.7",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "extrafont",
+        "gdtools",
+        "ggplot2",
+        "grDevices",
+        "grid",
+        "magrittr",
+        "scales",
+        "tools",
+        "utils"
+      ],
+      "Hash": "c115b4507f9fc1c754649e1d5899c46d"
+    },
     "htmltools": {
       "Package": "htmltools",
       "Version": "0.5.7",
@@ -1558,6 +1561,13 @@
         "yaml"
       ],
       "Hash": "04291cc45198225444a397606810ac37"
+    },
+    "httpcode": {
+      "Package": "httpcode",
+      "Version": "0.3.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "13641a1c6d2cc98801b76764078e17ea"
     },
     "httpuv": {
       "Package": "httpuv",
@@ -1599,29 +1609,6 @@
         "uuid"
       ],
       "Hash": "99df65cfef20e525ed38c3d2577f7190"
-    },
-    "igraph": {
-      "Package": "igraph",
-      "Version": "2.0.3",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "Matrix",
-        "R",
-        "cli",
-        "cpp11",
-        "grDevices",
-        "graphics",
-        "lifecycle",
-        "magrittr",
-        "methods",
-        "pkgconfig",
-        "rlang",
-        "stats",
-        "utils",
-        "vctrs"
-      ],
-      "Hash": "c3b7d801d722e26e4cd888e042bf9af5"
     },
     "isoband": {
       "Package": "isoband",
@@ -1917,18 +1904,6 @@
       ],
       "Hash": "f1fb7cc9fc60f3b039201174268aaad9"
     },
-    "magick": {
-      "Package": "magick",
-      "Version": "2.8.3",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "Rcpp",
-        "curl",
-        "magrittr"
-      ],
-      "Hash": "3f6bcbb8a0c1c9365b2f02d5d04ad7bc"
-    },
     "magrittr": {
       "Package": "magrittr",
       "Version": "2.0.3",
@@ -2060,19 +2035,6 @@
       ],
       "Hash": "17e96668f44a28aef0981d9e17c49b59"
     },
-    "networkD3": {
-      "Package": "networkD3",
-      "Version": "0.4",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "htmlwidgets",
-        "igraph",
-        "magrittr"
-      ],
-      "Hash": "38310ec4ddb1398359abdd603c151067"
-    },
     "nlme": {
       "Package": "nlme",
       "Version": "3.1-163",
@@ -2145,17 +2107,6 @@
         "zip"
       ],
       "Hash": "c03b4c18d42da881fb8e15a085c2b9d6"
-    },
-    "packcircles": {
-      "Package": "packcircles",
-      "Version": "0.3.6",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "Rcpp"
-      ],
-      "Hash": "200e0502e07847f9e6306287fea23961"
     },
     "packrat": {
       "Package": "packrat",
@@ -2383,13 +2334,6 @@
         "stats"
       ],
       "Hash": "0d8a15c9d000970ada1ab21405387dee"
-    },
-    "proto": {
-      "Package": "proto",
-      "Version": "1.0.0",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Hash": "5cb1623df69ee6102d011c7f78f5791d"
     },
     "proxy": {
       "Package": "proxy",
@@ -3339,19 +3283,15 @@
       ],
       "Hash": "dfcb77371df343b663d6668d2d63ac35"
     },
-    "treemapify": {
-      "Package": "treemapify",
-      "Version": "2.5.6",
+    "triebeard": {
+      "Package": "triebeard",
+      "Version": "0.4.1",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
-        "R",
-        "cli",
-        "ggfittext",
-        "ggplot2",
-        "grid"
+        "Rcpp"
       ],
-      "Hash": "bbba5d34efaec259a45f18539b449b9a"
+      "Hash": "642507a148b0dd9b5620177e0a044413"
     },
     "tweenr": {
       "Package": "tweenr",
@@ -3389,6 +3329,19 @@
         "Rcpp"
       ],
       "Hash": "119d19da480e873f72241ff6962ffd83"
+    },
+    "urltools": {
+      "Package": "urltools",
+      "Version": "1.7.3",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "methods",
+        "triebeard"
+      ],
+      "Hash": "e86a704261a105f4703f653e05defa3e"
     },
     "utf8": {
       "Package": "utf8",
@@ -3472,30 +3425,6 @@
         "withr"
       ],
       "Hash": "390f9315bc0025be03012054103d227c"
-    },
-    "waffle": {
-      "Package": "waffle",
-      "Version": "1.0.2",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "DT",
-        "R",
-        "RColorBrewer",
-        "curl",
-        "extrafont",
-        "ggplot2",
-        "grid",
-        "gridExtra",
-        "gtable",
-        "htmlwidgets",
-        "plyr",
-        "rlang",
-        "stats",
-        "stringr",
-        "utils"
-      ],
-      "Hash": "b4a5d1a3036a7e6a63439b16b3ad39fc"
     },
     "waldo": {
       "Package": "waldo",
@@ -3594,20 +3523,6 @@
       ],
       "Hash": "5d4545e140e36476f35f20d0ca87963e"
     },
-    "wordcloud2": {
-      "Package": "wordcloud2",
-      "Version": "0.2.1",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "base64enc",
-        "grDevices",
-        "graphics",
-        "htmlwidgets"
-      ],
-      "Hash": "10274bd096f5c2ad7471ea0eea0c1424"
-    },
     "xfun": {
       "Package": "xfun",
       "Version": "0.42",
@@ -3663,23 +3578,6 @@
       "Source": "Repository",
       "Repository": "RSPM",
       "Hash": "29240487a071f535f5e5d5a323b7afbd"
-    },
-    "yulab.utils": {
-      "Package": "yulab.utils",
-      "Version": "0.1.4",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "cli",
-        "digest",
-        "fs",
-        "memoise",
-        "rlang",
-        "stats",
-        "tools",
-        "utils"
-      ],
-      "Hash": "60ee2aaa179dc282e9fa7367bad76e89"
     },
     "zip": {
       "Package": "zip",

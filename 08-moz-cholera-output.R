@@ -1,27 +1,3 @@
-# Export current cholera data -----
-
-# # get table name
-# name_tbl <- substitute(cholera_data_adm2)
-# # get table content
-# tmp <- eval(name_tbl)
-# wb <- createWorkbook()
-# addWorksheet(wb, "cholera map data", gridLines = FALSE)
-# writeDataTable(wb, sheet = 1, tmp, tableStyle = "TableStyleMedium9",  withFilter = TRUE)
-# 
-# excel_file <- paste0("cholera_map_data_", max_date_2, ".xlsx")
-# saveWorkbook(wb, file = paste(output_dir, excel_file, sep = "/"), overwrite = TRUE)
-# 
-# # get table name
-# name_tbl <- substitute(bulletin_data)
-# # get table content
-# tmp <- eval(name_tbl)
-# wb <- createWorkbook()
-# addWorksheet(wb, "cholera cases", gridLines = FALSE)
-# writeDataTable(wb, sheet = 1, tmp, tableStyle = "TableStyleMedium9",  withFilter = TRUE)
-# 
-# excel_file <- "bulletin_data.xlsx"
-# saveWorkbook(wb, file = paste(output_dir, excel_file, sep = "/"), overwrite = TRUE)
-
 # Export partnerships table -----
 
 # get table name
@@ -71,8 +47,5 @@ freezePane(wb, "cholera_data", firstActiveRow = 3, firstActiveCol = 5)
 # get table name
 name_tbl <- substitute(district_daily_export_wide_tbl)
 
-excel_file <- paste0(name_tbl, "_", max_date_2, ".xlsx")
-saveWorkbook(wb, file = paste(output_dir, excel_file, sep = "/"), overwrite = TRUE)
-
 excel_file <- paste0(name_tbl, ".xlsx")
-saveWorkbook(wb, file = paste(export_dir, excel_file, sep = "/"), overwrite = TRUE)
+saveWorkbook(wb, file = paste(output_dir, excel_file, sep = "/"), overwrite = TRUE)
