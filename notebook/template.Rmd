@@ -1,0 +1,46 @@
+---
+title: "Main"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+### Description
+
+
+### Main functions
+
+
+```{r}
+# ONLY for Notebook: do not run chunks when knitting notebook. Applies to all chunks
+knitr::opts_chunk$set(eval = FALSE)
+
+```
+
+### Configuration
+
+```{r}
+
+```
+
+### Data Load
+
+
+```{r}
+
+```
+
+### Process
+
+(@) 
+
+```{r}
+
+```
+
+### Output
+
+
+```{r}
+
+```
+

@@ -1,0 +1,143 @@
+---
+title: "moz-cholera-analysis"
+format: html
+editor: visual
+---
+
+## Prepare dataset
+
+```{r}
+df <- cholera_wash_sanitation_district_tbl %>% 
+  dplyr::select(c(ADM1_PT, ADM2_PT, pop_surf_ratio, pop_od_ratio, incidence)) %>% 
+  mutate(across(c(ADM1_PT, ADM2_PT), factor))
+```
+
+## 0. Test data distribution
+
+Test if dependat variable (incidence) is normally distributed using Shapiro. P-value \< 0.05 -\> We reject the null hypothesis (that is, that data was normally distributed):
+
+```{r}
+#| echo: false
+shapiro.test(df$incidence)
+```
+
+Test if Poisson distribution. Mean and variance should be similar, which is not the case -\> not Poisson distribution
+
+```{r}
+mean(df$incidence)
+var(df$incidence)
+```
+
+## 1. Mixed-effects model (hierarchical model)
+
+Using only ADM1_PT as random effect
+
+```{r}
+#| echo: false
+#| warning: false
+# Using only ADM1_PT as random effect
+model <- lme4::lmer(incidence ~ pop_surf_ratio + pop_od_ratio + (1 | ADM1_PT), data = df)
+summary(model)
+```
+
+## 2. Multivariate linear regression model
+
+Fit the linear regression model
+
+```{r}
+#| echo: false
+#| warning: false
+# Fit the linear regression model
+model <- lm(incidence ~ pop_surf_ratio + pop_od_ratio, data = df)
+
+# Output the summary of the model
+summary(model)
+```
+
+## 3. Linear regression model (1 predictor: pop_od_ratio)
+
+```{r}
+#| echo: false
+#| warning: false
+# Fit the linear regression model
+model <- lm(incidence ~ pop_od_ratio, data = df)
+
+# Output the summary of the model
+summary(model)
+```
+
+## 4. Linear regression model (1 predictor: pop_surf_ratio)
+
+```{r}
+#| echo: false
+#| warning: false
+# Fit the linear regression model
+model <- lm(incidence ~ pop_surf_ratio, data = df)
+
+# Output the summary of the model
+summary(model)
+```
+
+## 5. Poisson GLM (Generalized Linear Model)
+
+```{r}
+#| echo: false
+#| warning: false
+# Fit a Multi-variate Poisson GLM (Generalized Linear Model)
+model <- glm(incidence ~ pop_surf_ratio + pop_od_ratio, 
+             family = poisson(link = "log"), 
+             data = df)
+
+# View the summary of the model
+summary(model)
+```
+
+## 6. Negative Binomial Regression GLM
+
+```{r}
+#| echo: false
+#| warning: false
+# Fit the negative binomial model
+model_negbin <- MASS::glm.nb(incidence ~ pop_surf_ratio + pop_od_ratio, data = df)
+
+# View the summary of the model
+summary(model_negbin)
+```
+
+## 7. Quasi-Poisson GLM
+
+```{r}
+#| echo: false
+#| warning: false
+# Fit the Quasi-Poisson model
+model_quasipoisson <- glm(incidence ~ pop_surf_ratio + pop_od_ratio, 
+                          family = quasipoisson(link = "log"), 
+                          data = df)
+
+# View the summary of the model
+summary(model_quasipoisson)
+```
+
+## 8. Negative Binomial Interaction GLM (pop_surf_ratio and pop_od_ratio)
+
+```{r}
+#| echo: false
+#| warning: false
+# Adding an Interaction Term
+model_interaction <- MASS::glm.nb(incidence ~ pop_surf_ratio + pop_od_ratio + pop_surf_ratio:pop_od_ratio, data = df)
+
+# View the summary of the model
+summary(model_interaction)
+```
+
+## 9. Linear Model Interaction GLM (pop_surf_ratio and pop_od_ratio)
+
+```{r}
+#| echo: false
+#| warning: false
+# Adding an Interaction Term
+model_interaction_lm <- lm(incidence ~ pop_surf_ratio + pop_od_ratio + pop_surf_ratio:pop_od_ratio, data = df)
+
+# View the summary of the model
+summary(model_interaction_lm)
+```

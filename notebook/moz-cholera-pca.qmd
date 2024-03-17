@@ -1,0 +1,757 @@
+---
+title: "moz-cholera-analysis"
+format: html
+editor: visual
+---
+
+## 0. Load libraries
+
+```{r}
+#| warning: false
+library(corrplot)
+library(FactoMineR)
+library(factoextra)
+library(ggbiplot)
+library(ggpubr)
+library(ggrepel)
+```
+
+## 1. Prepare dataset
+
+```{r}
+df <- cholera_wash_sanitation_district_tbl %>% 
+  dplyr::select(c(ADM1_PT, ADM2_PT, pop_surf_ratio, pop_od_ratio, incidence)) %>% 
+  mutate(across(c(ADM1_PT, ADM2_PT), factor)) %>% 
+  select(ADM2_PT, everything()) %>% 
+  mutate(pop_better_water = 1-pop_surf_ratio, pop_better_sanitation = 1 - pop_od_ratio) %>% 
+  select(-c(pop_surf_ratio, pop_od_ratio))
+
+
+# Set ADM2_PT as row names
+df <- as.data.frame(df)
+rownames(df) <- df$ADM2_PT
+```
+
+## 3. Check NA values
+
+Check first there are not missing values or values that need imputation:
+
+```{r}
+
+# Check for missing values
+Amelia::missmap(df, legend = TRUE, col = c("yellow", "dodgerblue"))
+```
+
+## 3. Correlation analysis
+
+```{r}
+df_numeric <- df %>% 
+  select(where(is.numeric))
+
+corr_matrix <- cor(df_numeric)
+
+# using ggcorrplot
+ggcorrplot::ggcorrplot(corr_matrix)
+
+# using corrplot
+corrplot::corrplot(corr_matrix, type="upper", order="hclust", 
+         tl.col="black", tl.srt=45)
+```
+
+Multiplot correlation analysis:
+
+```{r}
+# Using psych library
+psych::pairs.panels(df[,3:5],
+             gap = 0,
+             bg = UNICEF_PALETTE[df$ADM1_PT],
+             pch=21)
+
+# Using PerformanceAnalytics library
+PerformanceAnalytics::chart.Correlation(df[,3:5], histogram=TRUE, pch=19)
+```
+
+## 4. PCA using stats::prcomp
+
+```{r}
+
+pc <- prcomp(df[,3:5],
+             center = TRUE,
+            scale. = TRUE)
+attributes(pc)
+pc$x
+```
+
+Get loadings:
+
+```{r}
+print(pc)
+```
+
+Cumulative contribution of components:
+
+```{r}
+summary(pc)
+```
+
+Orthogonality of PCs
+
+```{r}
+psych::pairs.panels(pc$x,
+             gap=0,
+             bg = UNICEF_PALETTE[df$ADM1_PT],
+             pch=21)
+
+PerformanceAnalytics::chart.Correlation(pc$x, histogram=TRUE, pch=19)
+```
+
+Create a Bi-plot:
+
+```{r}
+g <- ggbiplot::ggbiplot(pc,
+              obs.scale = 1,
+              var.scale = 1,
+              groups = df$ADM1_PT,
+              ellipse = TRUE,
+              ellipse.fill = FALSE,
+              circle = TRUE,
+              ellipse.prob = 0.68)
+g <- g + scale_color_discrete(name = '')
+g <- g + theme(legend.direction = 'horizontal',
+               legend.position = 'top')
+print(g)
+```
+
+## 5. PCA using FactoMiner
+
+Perform the PCA, with two qualitative variables and a maximum of 5 components (we get just 3):
+
+```{r}
+# We'll store the results of the PCA in the object called res
+res <- FactoMineR::PCA(df, scale.unit = TRUE, quali.sup = c(1,2), ncp = 5, graph = T)
+
+summary(res)
+```
+
+First two dimensions explain 85% of the data:
+
+```{r}
+res$eig
+
+```
+
+Plot the eigenvalue components. In general we stop choosing the dimensions when the decreasing of the eigenvalue becomes regular
+
+```{r}
+df_res = data.frame(res$eig)
+plot(df_res$eigenvalue, type = 'h')
+```
+
+Check the scree plot also:
+
+```{r}
+factoextra::fviz_eig(res, addlabels = TRUE, ylim = c( 0, 60)) 
+```
+
+Orthogonality of PCs. Correlation among PC's is shown in upper part, scatter-plots in lower part, and distribution histogram in the diagonal.
+
+```{r}
+psych::pairs.panels(res$ind$coord,
+             gap=0,
+             bg = UNICEF_PALETTE[df$ADM1_PT],
+             pch=21)
+
+PerformanceAnalytics::chart.Correlation(res$ind$coord, histogram=TRUE, pch=19)
+```
+
+```{r}
+# Plot PCA results, coloring by the first qualitative variable (ADM2_PT)
+
+factoextra::fviz_pca_biplot(res,
+             col.ind = df$ADM1_PT, # Color by ADM2_PT
+             palette = "jco", # You can choose a different palette
+             addEllipses = TRUE, # Add confidence ellipses if needed
+             legend.title = "ADM1_PT",
+             label = "ind")
+```
+
+```{r}
+#| warning: false
+g <- ggbiplot::ggbiplot(res,
+              # obs.scale = 1,
+              # var.scale = 1,
+              labels = "", # with no labels draws again the point
+              groups = df$ADM1_PT,
+              ellipse = TRUE,
+              ellipse.fill = FALSE,
+              ellipse.linewidth = 0.6,
+              circle = TRUE,
+              ellipse.prob = 0.68) +
+  geom_point(aes(fill = df$ADM1_PT, size=res$ind$cos2[,1]), alpha=0.65, shape=21) +
+  geom_text(aes(label = df$ADM2_PT), color = "black", size = 3, vjust = -1) +
+  scale_fill_manual(values = UNICEF_PALETTE) +
+  scale_color_manual(values = UNICEF_PALETTE) +
+  labs(fill = "ADM1_PT") +
+  theme_ipsum() +
+  guides(color = guide_legend(title = "Province"),  # Rename groups legend to Province
+         size = guide_legend(title = "cos2"),
+         fill = "none")  # Hide the fill guide
+
+
+print(g)
+```
+
+The Variables factor map presents a view of the projection of the observed variables projected into the plane spanned by the first two principal components. This shows us the structural relationship between the variables and the components, and helps us name the components. The projection of a variable vector onto the component axis allows us to directly read the correlation between the variable and the component.
+
+The variables `incidence` and `pop_od_ratio` appear as medium to highly correlated and also contribute to the 1st dimension:
+
+```{r}
+# Now let's plot the Variable factor map
+plot.PCA(res, axes=c(1, 2), choix="var", habillage=2)
+```
+
+Contribution of each variable to the different dimensions:
+
+```{r}
+res$var$contrib
+```
+
+```{r}
+#dimdesc(res, axes = 1:2)
+```
+
+## 6. PCA using FactoMiner and factoextra
+
+### Scale and generate PCA object
+
+```{r}
+res.pca <- FactoMineR::PCA(df, scale.unit = TRUE, quali.sup = c(1,2), ncp = 5, graph = T)
+print(res.pca)
+```
+
+### Examine the eigenvalues
+
+-   Eigenvectors and eigenvalues inform us about the directions and the magnitude of the spread of our data.
+
+-   An eigenvalue \> 1 indicates that PCs account for more variance than accounted by one of the original variables in standardized data. This is commonly used as a cutoff point for which PCs are retained. This holds true only when the data are standardized.
+
+-   You can also limit the number of component to that number that accounts for a certain fraction of the total variance. For example, if you are satisfied with 70% of the total variance explained then use the number of components to achieve that.
+
+-   We choose here Dim.1 and Dim.2
+
+```{r}
+#directly
+res.pca$eig
+
+# use function
+eig.val <- factoextra::get_eigenvalue(res.pca)
+eig.val
+```
+
+### Make the scree plot:
+
+Other option is to get principal components until they became small and of similar size.
+
+```{r}
+factoextra::fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 60))
+```
+
+### Graph of variables
+
+#### Results
+
+List of matrices with the results:
+
+```{r}
+var <- factoextra::get_pca_var(res.pca)
+var
+```
+
+```{r}
+ind <- get_pca_ind(res.pca)
+ind
+```
+
+Access the results:
+
+```{r}
+# Coordinates
+head(var$coord)
+# Cos2: quality on the factore map
+head(var$cos2)
+# Contributions to the principal components
+head(var$contrib)
+```
+
+#### Correlation circle
+
+-   Positively correlated variables are grouped together.
+-   Negatively correlated variables are positioned on opposite sides of the plot origin (opposed quadrants).
+-   The distance between variables and the origin measures the quality of the variables on the factor map. Variables that are away from the origin are well represented on the factor map.
+
+```{r}
+head(var$coord)
+factoextra::fviz_pca_var(res.pca, col.var = "black")
+```
+
+#### Quality of representation
+
+```{r}
+head(var$cos2)
+```
+
+```{r}
+corrplot::corrplot(var$cos2, is.corr=FALSE)
+```
+
+It’s also possible to create a bar plot of variables cos2 using the function fviz_cos2(). Here is the
+
+```{r}
+# Total cos2 of variables on Dim.1 and Dim.2
+factoextra::fviz_cos2(res.pca, choice = "var", axes = 1:2)
+```
+
+-   The cos2 values are used to estimate the quality of the representation
+-   The closer a variable is to the circle of correlations, the better its representation on the factor map (and the more important it is to interpret these components)
+-   Variables that are closed to the center of the plot are less important for the first components.
+
+```{r}
+# Color by cos2 values: quality on the factor map
+factoextra::fviz_pca_var(res.pca, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE # Avoid text overlapping
+             )
+
+```
+
+#### Contributions of variables to PCs
+
+-   Variables that are correlated with PC1 (i.e., Dim.1) and PC2 (i.e., Dim.2) are the most important in explaining the variability in the data set.
+-   Variables that do not correlated with any PC or correlated with the last dimensions are variables with low contribution and might be removed to simplify the overall analysis.
+
+```{r}
+corrplot::corrplot(var$contrib, is.corr=FALSE)
+corrplot::corrplot(var$coord, is.corr=FALSE)
+```
+
+The red dashed line on the graph above indicates the expected average contribution. If the contribution of the variables were uniform, the expected value would be 1/length(variables) = 1/10 = 10%. For a given component, a variable with a contribution larger than this cutoff could be considered as important in contributing to the component.
+
+```{r}
+# Contributions of variables to PC1
+fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
+# Contributions of variables to PC2
+fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
+```
+
+```{r}
+fviz_contrib(res.pca, choice = "var", axes = 1:2, top = 10)
+```
+
+```{r}
+fviz_pca_var(res.pca, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
+             )
+
+fviz_pca_var(res.pca, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07")
+             )
+```
+
+#### Color by variable groups (k-means cluster variables)
+
+As we don’t have any grouping variable in our data sets for classifying variables, we’ll create it.
+
+In the following demo example, we start by classifying the variables into 3 groups using the kmeans clustering algorithm. Next, we use the clusters returned by the kmeans algorithm to color variables.
+
+```{r}
+# Create a grouping variable using kmeans
+# Create 3 groups of variables (centers = 3)
+set.seed(123)
+res.km <- kmeans(var$coord, centers = 2, nstart = 25)
+grp <- as.factor(res.km$cluster)
+# Color variables by groups
+fviz_pca_var(res.pca, col.var = grp, 
+             palette = c("#0073C2FF", "#EFC000FF", "#868686FF"),
+             legend.title = "Cluster")
+```
+
+### Graph of individuals
+
+#### Results
+
+```{r}
+ind <- get_pca_ind(res.pca)
+ind
+```
+
+```{r}
+# Coordinates of individuals
+head(ind$coord)
+# Quality of individuals
+head(ind$cos2)
+# Contributions of individuals
+head(ind$contrib)
+```
+
+#### Plots: quality and contribution
+
+Quality and contribution of individuals by color gradient. It highlights the strength of contribution to both components PC1 + PC2.
+
+```{r}
+fviz_pca_ind(res.pca, col.ind = "cos2", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE # Avoid text overlapping (slow if many points)
+             )
+
+fviz_pca_ind(res.pca, col.ind = "contrib", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE # Avoid text overlapping (slow if many points)
+             )
+```
+
+Quality and contribution of individuals by size:
+
+```{r}
+fviz_pca_ind(res.pca, pointsize = "cos2", 
+             pointshape = 21, fill = "#E7B800",
+             repel = TRUE # Avoid text overlapping (slow if many points)
+             )
+
+fviz_pca_ind(res.pca, pointsize = "contrib", 
+             pointshape = 21, fill = "#E7B800",
+             repel = TRUE # Avoid text overlapping (slow if many points)
+             )
+```
+
+Total contribution of individuals on PC1 + PC2 and on PC1 only
+
+```{r}
+# Total contribution on PC1 and PC2
+fviz_contrib(res.pca, choice = "ind", axes = 1:2)
+
+# Total contribution on PC1 
+fviz_contrib(res.pca, choice = "ind", axes = 1)
+
+# Total contribution on PC2 
+fviz_contrib(res.pca, choice = "ind", axes = 2)
+```
+
+#### Plots: Colour individuals by groups
+
+Factoextra can be used as ggplot:
+
+```{r}
+fviz_pca_ind(res.pca,
+             #geom.ind = "point", # show points only (but not "text")
+             pointshape = 21, 
+             fill.ind = df$ADM1_PT,
+             #pointsize = "contrib",
+             col.ind = df$ADM1_PT, # color by groups
+             palette = UNICEF_PALETTE,
+             #addEllipses = TRUE, # Concentration ellipses,
+             repel = TRUE,
+             #legend.title = "Provinces",
+             mean.point = FALSE, # remove baricenters
+             #legend.title = list(fill = "Province")
+             ) +
+  guides(color = "none",
+         fill = guide_legend(title = "Province"),  # Add and customize fill legend
+         #color = guide_legend(title = "Province"),  # Rename groups legend to Province
+         #size = guide_legend(title = "cos2"),
+         )  # Hide the fill guide
+```
+
+#### Biplot
+
+Roughly speaking a biplot can be interpreted as follow: - an individual that is on the same side of a given variable has a high value for this variable; - an individual that is on the opposite side of a given variable has a low value for this variable.
+
+```{r}
+fviz_pca_biplot(res.pca,
+             #geom.ind = c("point", "text"), # to add labels in fviz directly
+             geom.ind = c("point"),
+             pointshape = 21, 
+             #pointsize = 2,
+             pointsize = "contrib", 
+             fill.ind = df$ADM1_PT,
+             col.ind = "white", # border color and also fviz label color
+             #col.ind = df$ADM1_PT, # color by groups
+             palette = UNICEF_PALETTE,
+             repel = TRUE, # applies only to fviz labels
+             mean.point = FALSE, # remove baricenters,
+             # Variables
+             col.var = "contrib",   # Color for variables based on contribution
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), # Gradient for continuous variable
+            legend.title = list(fill = "Province", color = "Var. contrib")
+             ) +
+  guides(
+    size = "none", # hide legend linked to pointsize
+    #color = "none", # hide legend linked to color.ind
+    #fill = guide_legend(title = "Province"),
+    ) + 
+  #geom_text(aes(label = df$ADM2_PT), color = UNICEF_PALETTE[df$ADM1_PT], size = 3, vjust = -1) # add labels from ggplot
+  geom_text_repel(aes(label = df$ADM2_PT), color = UNICEF_PALETTE[df$ADM1_PT], size = 3, box.padding = 0.35, point.padding = 0.5, max.overlaps = 20) 
+
+fviz_pca_biplot(res.pca,
+             geom.ind = c("point", "text"), # to add labels in fviz directly
+             pointshape = 21, 
+             pointsize = 2,
+             fill.ind = df$ADM1_PT,
+             col.ind = df$ADM1_PT, # color by groups
+             palette = UNICEF_PALETTE,
+             repel = TRUE, # applies only to fviz labels
+             mean.point = FALSE, # remove baricenters,
+             legend.title = list(fill = "Province")
+             ) + 
+  guides(
+    color = "none", # hide legend linked to color.ind
+    )
+
+fviz_pca_biplot(res.pca,
+             geom.ind = c("point", "text"), # to add labels in fviz directly
+             pointshape = 21, 
+             pointsize = df$incidence,
+             fill.ind = df$ADM1_PT,
+             col.ind = df$ADM1_PT, # color by groups
+             palette = UNICEF_PALETTE,
+             repel = TRUE, # applies only to fviz labels
+             mean.point = FALSE, # remove baricenters,
+             legend.title = list(fill = "Province")
+             ) + 
+  guides(
+    color = "none", # hide legend linked to color.ind
+    )
+```
+
+## 7. Hierarchical Clustering
+
+### Process hierarchical clustering
+
+If consol = T, it performs a post-hierarchical k-mean refine
+
+```{r}
+res.hcpc<-FactoMineR::HCPC(res.pca , nb.clust=-1, consol=F, min=4, max=10, graph=TRUE)
+
+```
+
+### Plot hierarchical clustering
+
+```{r}
+plot.HCPC(res.hcpc, choice = 'tree', ind.names = F)
+```
+
+### Description of each cluster by categories and variables
+
+-   Cluster 1: Districts here tend to have low pop_surf_ratio and low pop_od_ratio
+-   Cluster 2: Districts here relatively high pop_surf_ratio
+-   Cluster 3: Districts here show high pop_od_ratio and high incidence in correlation
+
+```{r}
+res.hcpc$desc.var
+```
+
+Let's see which districts are in which clusters:
+
+```{r}
+# Let's see which countries are in which clusters
+cluster = data.frame(res.hcpc$data.clust)
+head(cluster)
+```
+
+```{r}
+cluster %>% group_by(clust) %>% summarize(Total_Districts = n())
+```
+
+```{r}
+cluster = cluster %>% arrange(by = clust) 
+cluster[,c('ADM2_PT', 'clust')]
+```
+
+```{r}
+plot.HCPC(res.hcpc, axes = 1:2)
+```
+
+```{r}
+df2 = data.frame(res.hcpc$call$X)
+head(df2)
+```
+
+```{r}
+#| warning: false
+
+hull <- df2 %>% group_by(clust) %>% 
+slice(chull(Dim.1, Dim.2))
+ 
+ggplot(df2, aes(Dim.1, Dim.2)) + 
+  geom_point(aes(col = clust)) + 
+  geom_text_repel(aes(label = rownames(df2), col = clust), size = 3, box.padding = 0.35, point.padding = 0.5) +
+  #stat_ellipse(aes(group = clust, color = clust), geom = "polygon", alpha = 0.2, linetype = 2) +  # Add ellipses
+  theme_ipsum() +
+  guides(
+    #color = guide_legend(title = "Cluster")
+  ) +
+  geom_polygon(data = hull, alpha = 0.2, 
+                 aes(fill = clust,colour = clust))
+  
+```
+
+### Biplot by cluster with convex hull
+
+Prepare the data frame adding cluster column:
+
+```{r}
+df3 <- df2 %>% rownames_to_column(var = "ADM2_PT")
+df4 <- df %>% left_join(df3, by ="ADM2_PT") %>% 
+  select(-c(Dim.1, Dim.2, Dim.3))
+df4 <- as.data.frame(df4)
+rownames(df4) <- df4$ADM2_PT
+```
+
+Regenerate the pca analysis:
+
+```{r}
+res2.pca <- FactoMineR::PCA(df4, scale.unit = TRUE, quali.sup = c(1,2,6), ncp = 5, graph = F)
+```
+
+Create the convex hull based on same coordinates as the PCA, and overplot it to the biplot:
+
+```{r}
+
+# Extract PCA coordinates for individuals
+pca_ind <- get_pca_ind(res2.pca)
+df_pca <- data.frame(pca_ind$coord)
+df_pca$clust <- df4$clust  # Assuming df4 contains the cluster information
+
+# Create the convex hull
+hull2 <- df_pca %>% group_by(clust) %>% 
+  slice(chull(Dim.1, Dim.2)) %>% 
+  ungroup()
+
+# Make the Biplot with convex hull
+fviz_pca_biplot(res2.pca,
+             geom.ind = c("point", "text"), # to add labels in fviz directly
+             pointshape = 21, 
+             #pointsize = 2,
+             pointsize = "contrib", #df4$incidence,
+             fill.ind = df4$clust,
+             col.ind = df4$clust, # color by groups
+             col.var = "orange",
+             #col.var = "blue",
+             repel = TRUE, # applies only to fviz labels
+             mean.point = FALSE, # remove baricenters,
+             legend.title = list(fill = "Cluster", size = "Contrib"),
+             title = "PCA / HCPC - Biplot",
+             labelsize = 3  # Adjust the size of individual's labels
+             ) + 
+  guides(
+    color = "none", # hide legend linked to color.ind
+    fill = guide_legend(override.aes = list(size = 3)) # Adjust the size of legend symbols
+    ) + 
+  geom_polygon(data = hull2, aes(x = Dim.1, y = Dim.2, group = clust, fill = clust, colour = clust), alpha = 0.2)
+
+# Make the Biplot with convex hull
+fviz_pca_biplot(res2.pca,
+             geom.ind = c("point", "text"), # to add labels in fviz directly
+             pointshape = 21, 
+             #pointsize = 2,
+             pointsize = df4$incidence,
+             fill.ind = df4$clust,
+             col.ind = df4$clust, # color by groups
+             #col.var = "orange",
+             col.var = "blue",
+             repel = TRUE, # applies only to fviz labels
+             mean.point = FALSE, # remove baricenters,
+             legend.title = list(fill = "Cluster", size = "Incidence"),
+             title = "PCA / HCPC - Biplot",
+             labelsize = 3  # Adjust the size of individual's labels
+             ) + 
+  guides(
+    color = "none", # hide legend linked to color.ind
+    fill = guide_legend(override.aes = list(size = 3)) # Adjust the size of legend symbols
+    ) + 
+  geom_polygon(data = hull2, aes(x = Dim.1, y = Dim.2, group = clust, fill = clust, colour = clust), alpha = 0.2)
+
+# Make the Biplot with convex hull
+fviz_pca_biplot(res2.pca,
+             geom.ind = c("point", "text"), # to add labels in fviz directly
+             pointshape = 21, 
+             #pointsize = 2,
+             pointsize = df4$incidence,
+             fill.ind = df4$ADM1_PT,
+             col.ind = df4$ADM1_PT, # color by groups
+             col.var = "blue",
+             alpha.var = 0.5,
+             palette = UNICEF_PALETTE,
+             repel = TRUE, # applies only to fviz labels
+             mean.point = FALSE, # remove baricenters,
+             legend.title = list(fill = "Province", size = "Incidence"),
+             title = "PCA / HCPC - Biplot: Cholera incidence and WASH variables",
+             labelsize = 3  # Adjust the size of individual's labels
+             ) + 
+  guides(
+    color = "none", # hide legend linked to color.ind
+    fill = guide_legend(override.aes = list(size = 3)) # Adjust the size of legend symbols
+    ) + 
+    geom_polygon(data = hull2, aes(x = Dim.1, y = Dim.2, group = clust), alpha = 0.4, fill="grey")
+
+
+fviz_pca_biplot(res2.pca, 
+                     col.ind = "contrib", # Color by the quality of representation
+                     gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+                     # You can choose your own gradient colors
+                     addEllipses = FALSE, # Do not add ellipses by default
+                     geom = c("point", "text")) + theme_minimal() + stat_density_2d(aes(fill = ..level..), geom = "polygon", color = "white", alpha = 0.3) +
+  scale_fill_gradient(low = "green", high = "red") # Customize your gradient colors
+
+```
+
+#### Biplot analysis
+
+-   incidence: Cholera cases per 100,000 inhabitants.
+
+-   pop_od_ratio: Open defectation ratio (per district)
+
+-   pop_surf_ratio: Surface water access ratio (per district)
+
+-   Size of bubbles shows the incidence magnitude for each district. Color shows to which province belong
+
+-   Grey polygons show the rough groups (or clusters) identified. Cluster 1 the one on the left, Cluster 2 in the middle and Cluster 3 on the right. Cluster 1 is the most compact (so the districts here might follow closer a pattern). Clusters 2 and 3 are more spread, which indicates higher variability within each cluster.
+
+-   Variable 'vectors' show how the variables are inter-related
+
+-   In general in this dataset, pop_od_ratio and incidence are somehow positively correlated (the vectors are relatively close and point more or less on the same direction). These two variables also contribute greatly to component Dim1, which by itself explains 54% of the data variance.
+
+-   pop_surf_ratio shows a mixed correlation, it goes on the same direction as incidence for the Dim1 component, but on opposite direction on the Dim2 component. This implies that it is not possible to generalize in this dataset that changes in surface water imply changes in incidence, or at least not in a linear way. Most likely different patterns arise depending on the district. There are probably many more factors behind that can make this relation more complex and difficult to spot here in a way that generalizes over all districts (water sources can be of many different types, also some districts might have different conditions, the location for these water sources varies a lot as well, etc)
+
+-   Cluster 1: Districts here tend to have small pop_od_ratio and small pop_surf_ratio (less than the average), and a variable incidence, though in general lower than in Cluster 2 and 3.
+
+-   Cluster 2: Districts show a relative high pop_surf_ratio, and a higher pop_od_ratio compared to Cluster 1 (on average). Incidence slightly higher than Cluster 1 (on average), which might show some correlation. Potential higher risk of incidence.
+
+-   Cluster 3: Significally higher pop_od_ratio and incidence, which shows a more clear correlation between these two variables (specially on Zumbu and Maringue). The influence of pop_surf_ratio differs though, being more remarkable in Zumby, and to a lesser extend in Gile. Magoe district, though grouped under Cluster 2 (frontier data), could also follow this pattern of correlation of pop_od_ratio (and pop_surf_ratio) with incidence
+
+1.  **Cluster 1**: (Lower Open Defecation, Varied Surface Water Access):
+    -   **Surface Water Access (pop_surf_ratio)**: Likely lower than in Cluster 2 but higher than in Cluster 3, based on the average positioning on the PCA axes. This suggests limited access to surface water in these districts.
+    -   **Open Defecation Ratio (pop_od_ratio)**: Relatively lower (and lower than the overall mean), as indicated by their position on the negative side of Dim1.
+    -   **Cholera Incidence**: Moderate (average of 78.17), likely influenced by both factors but may be lower compared to Cluster 3, which might be related to the lower open defecation ratio, suggesting that improved sanitation practices could be having a positive impact on controlling cholera incidence.
+    -   **Summary Cluster 1**: seems to be characterized by limited surface water access, better sanitation practices, and moderate cholera incidence rates. Potentially lower impact of surface water access on cholera spread.
+2.  **Cluster 2**: (Higher Open Defecation, Higher Surface Water Access):
+    -   **Surface Water Access (pop_surf_ratio)**: Higher, as suggested by the positive Dim2 scores. This could mean better access to water but also potentially higher risk for cholera spread.
+    -   **Open Defecation Ratio (pop_od_ratio)**: Higher (average of 0.331) and positive scores on Dim1, indicating poorer sanitation practices compared to Cluster 1.
+    -   **Cholera Incidence**: Slightly higher than Cluster 1 (average of 87.64), which might be influenced by the higher open defecation ratio and higher surface water access, potentially exacerbating the spread of cholera. Potentially higher due to both increased open defecation and higher surface water access, which can facilitate cholera spread. However, the exact relationship might be nuanced, depending on how these factors interact in specific contexts.
+    -   **Summary Cluster 2**: exhibits higher surface water access, poorer sanitation practices, and slightly higher cholera incidence rates than Cluster 1. Higher risk due to both increased open defecation and water access, which can facilitate cholera spread.
+3.  **Cluster 3**: (Higher Open Defecation, Lower Surface Water Access):
+    -   **Surface Water Access (pop_surf_ratio)**: Lower than Cluster 2 but not necessarily the lowest. The lower Dim2 score suggests a different pattern of water access compared to Cluster 2.
+    -   **Open Defecation Ratio (pop_od_ratio)**: Significantly higher (average of 0.670), contributing to the cluster's position on the positive side of Dim1. Indicating the poorest sanitation practices among the three clusters.
+    -   **Cholera Incidence**: Significantly higher (average of 380.13), which is notably higher than the other clusters. This suggests a strong correlation between high open defecation ratios and high cholera incidence rates in these districts. Both high open defecation and the specific pattern of water access could exacerbate the spread of cholera.
+    -   **Summary Cluster 3**: The highest cholera incidence risk, driven mostly by poor sanitation (OD ratio) and a water access pattern that may exacerbate cholera spread.
+
+-   Group 1 (left): Most districts grouped here tend to have low pop_surf_ratio and low pop_od_ratio, and correlation with incidence is not regular nor clear (incidence varies a lot, regardless of pop_surf_ratio and low pop_od_ratio).
+
+-   Group 2 (middle): Most districts here share a relatively high pop_surf_ratio (20 to 25%), but the correlation with incidence is not clear, apart from some bordering points, for example Magoe, which could almost fall in group 3
+
+-   Group 3 (right): Most districts here show a pattern of relative high correlation between pop_od_ratio and incidence. Zumbu and Gile also show in addition a slightly higher correlation between pop_surf_ratio and incidence, in relation to the other districts in the group
+
+-   Macanga: small contribution overall to both components, small contribution to incidence (negative) and pop_od_ratio, small contribution to surface_water ratio
+
+-   Malema and Maravia: high surface ratio. Incidence in Malema smaller than Maravia. OD higher in Maravia than Malema
+
+-   Mecuburi and Changara similar surface ratio, Changara higher OD ratio, Changara higher incidence, but both not too big
