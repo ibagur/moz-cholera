@@ -1,3 +1,6 @@
+# For fuzzywuzzyR. Check Python config and initialize Python with reticulate
+reticulate::py_config()
+
 library(tidyverse)
 library(openxlsx)
 library(scales)
@@ -16,7 +19,9 @@ library(rsconnect)
 library(extrafont)
 library(extrafontdb)
 
+library(pdftools)
 library(fuzzyjoin)
+library(fuzzywuzzyR)
 library(stringi)
 library(showtext)
 library(htmlwidgets)

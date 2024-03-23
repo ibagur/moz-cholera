@@ -11,7 +11,8 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       width = 3, 
-      fileInput('dataset', 'Choose Latest Bulletin File', accept = c(".xlsx")),
+      fileInput('dataset', 'Choose Latest Bulletin File', accept = c(".xlsx", ".pdf")),
+      fileInput('dataset2', 'Choose Latest Partnership File', accept = c(".xlsx")),
       actionButton("runAnalysis", "Run Analysis", style = "margin-bottom: 10px;"),
       wellPanel(
         textOutput("result")
@@ -31,7 +32,7 @@ ui <- fluidPage(
                    column(6, 
                           #withLoader(imageOutput("map_png"), type="html", loader="loader1")
                           imageOutput("map_png")
-                          ),
+                   ),
                    column(6,
                           imageOutput("plot2_png"),
                           imageOutput("plot3_png")
@@ -49,11 +50,11 @@ ui <- fluidPage(
                  fluidRow(
                    column(6, 
                           imageOutput("plot5_png")
-                          ),
+                   ),
                    column(6, 
                           uiOutput("tableOutput")
                           #reactableOutput("table")
-                          )
+                   )
                  )
         )
       )
@@ -119,6 +120,17 @@ server <- function(input, output) {
     
     # Move the uploaded file to the target directory
     file.rename(input$dataset$datapath, targetPath)
+    
+    # Check if dataset2 is uploaded
+    if (!is.null(input$dataset2)) {
+      # dataset2 is uploaded, process it
+      req(input$dataset2) # Ensure a file is uploaded for dataset2
+      # Construct the target path dynamically using 'here' for dataset2
+      targetPath2 <- here("data", input$dataset2$name)
+      dir.create(dirname(targetPath2), recursive = TRUE, showWarnings = FALSE)
+      file.rename(input$dataset2$datapath, targetPath2)
+    }  
+    
     
     # Run analysis scripts
 

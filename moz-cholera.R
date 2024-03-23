@@ -1,4 +1,4 @@
-# list_of_packages <- package_list <- c("here", "tidyverse", "openxlsx", "sf", "tmap", "leaflegend",  "plotly", "rsconnect", "extrafont", "fuzzyjoin", "showtext", "webshot2", "ggrepel", "reactable", "reactablefmtr")
+# list_of_packages <- package_list <- c("here", "tidyverse", "openxlsx", "sf", "tmap", "leaflegend",  "plotly", "rsconnect", "extrafont", "fuzzyjoin", "showtext", "webshot2", "ggrepel", "reactable", "reactablefmtr", "pdftools")
 # 
 # new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
 # if(length(new_packages)) install.packages(new_packages)

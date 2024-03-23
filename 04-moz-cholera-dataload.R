@@ -1,10 +1,10 @@
 # IMPORT DATA -------
 
 if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
-
+  
   admin1_data <- read.xlsx(admin_dataset_path, sheet = 2, check.names = TRUE)
   admin2_data <- read.xlsx(admin_dataset_path, sheet = 3, check.names = TRUE)
-
+  
   ## data for maps -----
   cholera_data_path <- dataset_path[grep("*.Overview.*", dataset_path)]
   cholera_data <- read.xlsx(cholera_data_path, sheet = 1, check.names = T, startRow = 9) %>% 
@@ -17,24 +17,40 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
   
   #summary_data_path <- dataset_path[grep(paste0("*.summary.*"), dataset_path)]
   
-  summary_data_path <- dataset_path[grep(paste0("*.resumo.*"), dataset_path)]
+  summary_data_path <- dataset_path[grep(paste0("*.DVS.*"), dataset_path)]
   
-  # Use map-reduce to read each file and reduce to combine all dataframes
-  summary_data <- summary_data_path %>% 
-    map(function(path){
+  # Multi-line comment explaining the entire code:
+  # This code reads multiple Excel files from a list of file paths (summary_data_path).
+  # For each file, it finds the sheet name that starts with "Week" and reads the data from that sheet,
+  # skipping the first row and any empty columns.
+  # It then selects columns 2 to 10, renames the first two columns to "province" and "district",
+  # and fills down the "province" column to propagate values to missing cells.
+  # The resulting data frames from each file are combined into a single data frame using bind_rows().
+  # Finally, the code filters out rows where the "district" column starts with "Total" and removes any duplicate rows. 
+  summary_data <- summary_data_path %>%
+    map(function(path) {
+      # Get the names of all sheets in the current Excel file
       sheet_names <- getSheetNames(path)
+      # Find the sheet name that starts with "Week" (assuming it's the desired sheet)
       week_sheet <- sheet_names[startsWith(sheet_names, "Week")]
-      read.xlsx(path, sheet = week_sheet, check.names = F, startRow = 2, skipEmptyCols = FALSE) %>% 
-        select(2:10) %>% 
-        rename_with(~c("province", "district"), .cols=1:2) %>% 
+      # Read the data from the "Week" sheet, starting from the 2nd row and skipping empty columns
+      read.xlsx(path, sheet = week_sheet, check.names = F, startRow = 2, skipEmptyCols = FALSE) %>%
+        # Select columns 2 to 10
+        select(2:10) %>%
+        # Rename the first two columns to "province" and "district"
+        rename_with(~c("province", "district"), .cols = 1:2) %>%
+        # Fill down the "province" column to propagate values to missing cells
         fill(province, .direction = "down")
-    }) %>% 
-    reduce(bind_rows) %>% 
-    filter(!startsWith(district, "Total")) %>% 
-    distinct()  # Remove duplicate rows
-    # mutate(district = ifelse(grepl("\\*$", district), 
-    #                          substr(district, 1, nchar(district) - 1), 
-    #                          district))
+    }) %>%
+    # Combine all the data frames from each file into a single data frame
+    reduce(bind_rows) %>%
+    # Filter out rows where the "district" column starts with "Total"
+    filter(!startsWith(district, "Total")) %>%
+    # Remove any duplicate rows
+    distinct()
+  # mutate(district = ifelse(grepl("\\*$", district), 
+  #                          substr(district, 1, nchar(district) - 1), 
+  #                          district))
   
   ## Last bulletin data -----
   
@@ -52,7 +68,7 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
   # Convert the extracted string to a Date object
   #bulletin_date <- as.Date(date_str, format="%Y-%m-%d")
   bulletin_date <- bulletin_data_path$date
-    
+  
   bulletin_data <- read.xlsx(bulletin_data_path$summary_data_path, sheet = 1, check.names = T, startRow = 3, cols = 2:8) %>% 
     select(X1, X2, Casos, Óbitos) %>% 
     rename_with(~c("province", "district", "cases_now", "deaths_now"), .cols = everything()) %>% 
@@ -73,7 +89,7 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
   
   sanitation_data <- dataset_path[grep(paste0("*.sanitation.*"), dataset_path, ignore.case = T)] %>% 
     read.xlsx(sheet = 5, check.names = T) 
-    
+  
   water_data <- dataset_path[grep(paste0("*.water.*"), dataset_path, ignore.case = T)] %>% 
     read.xlsx(sheet = 1, check.names = T) 
   
@@ -111,50 +127,184 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
 } else {
   
   load(file = paste(rda_dir, "dataload.RData", sep = "/"), verbose = F)
-
-  summary_data_path <- dataset_path[grep(paste0("*.resumo.*"), dataset_path)]
+  
+  summary_data_path <- dataset_path[grep(paste0("*.DVS.*"), dataset_path)]
+  extension <- tolower(tools::file_ext(summary_data_path))
   
   # Use map-reduce to read each file and reduce to combine all dataframes
   if (length(summary_data_path) > 0 ) {
     
-    summary_data <- summary_data_path %>% 
-      map(function(path){
-        sheet_names <- getSheetNames(path)
-        week_sheet <- sheet_names[startsWith(sheet_names, "Week")]
-        read.xlsx(path, sheet = week_sheet, check.names = F, startRow = 2, skipEmptyCols = FALSE) %>% 
-          select(2:10) %>% 
-          rename_with(~c("province", "district"), .cols=1:2) %>% 
-          fill(province, .direction = "down")
-      }) %>% 
-      reduce(bind_rows) %>% 
-      filter(!startsWith(district, "Total")) %>% 
-      bind_rows(summary_data) %>% 
-      distinct()  # Remove duplicate rows
-  
-    bulletin_data_path <- data.frame(summary_data_path) %>%
-      mutate(date_string = gsub(".*_([0-9]{2}\\.[0-9]{2}\\.[0-9]{2}) .*", "\\1", summary_data_path)) %>% 
-      mutate(date = dmy(date_string)) %>% 
-      arrange(desc(date)) %>%
-      slice(1)
-    
-    # get latest bulletin date
-    bulletin_date <- bulletin_data_path$date
-    
-    # get bulletin data
-    bulletin_data <- read.xlsx(bulletin_data_path$summary_data_path, sheet = 1, check.names = T, startRow = 3, cols = 2:8) %>% 
-      select(X1, X2, Casos, Óbitos) %>% 
-      rename_with(~c("province", "district", "cases_now", "deaths_now"), .cols = everything()) %>% 
-      fill(province, .direction = "down") %>%  # to fill with the last non-NA value above.
-      filter(!grepl("total", district, ignore.case = TRUE)) # remove Total rows
-    
-    # get active cases data and health system burden
-    bulletin_active_data <- read.xlsx(bulletin_data_path$summary_data_path, sheet = 4, check.names = T, startRow = 3, cols = 2:19) %>% 
-      select(X1, X2, Casos, X13:X15,X17:18) %>% 
-      rename_with(~c("province", "district", "cases_now", "hospitalized", "capacity","occupancy_rate","population", "overall_incidence_rate"), .cols = everything()) %>% 
-      fill(province, .direction = "down") %>%  # to fill with the last non-NA value above.
-      filter(!grepl("total", district, ignore.case = TRUE)) %>% 
-      distinct()  %>% # Remove duplicate rows
-      filter(!grepl("surto|fim", district, ignore.case = TRUE))
+    # check if file is PDF or Excel (assuming a single file)
+    if(all(extension == "pdf")) {
+      
+      # Extract text from the PDF file
+      txt <- pdf_text(summary_data_path)
+      
+      # Select pages 3 and 4 from the extracted text
+      pdf_tbl <- paste(txt[3], txt[4])
+      
+      # Split the selected text into rows
+      tmp <- strsplit(pdf_tbl, "\n")
+      
+      # Remove extra spaces and replace commas with periods in the rows
+      district_tbl <- tmp[[1]] %>% 
+        str_squish() %>% 
+        str_replace_all(., ",", ".")
+      
+      # This code performs data cleaning and transformation on the `district_tbl` data frame.
+      # It extracts the location information, matches it with administrative data, and
+      # restructures the data frame for further analysis. The main steps include:
+      # 1. Extracting location information and separating it from numeric data
+      # 2. Cleaning and standardizing location names
+      # 3. Handling cases where location data is spread across multiple rows
+      # 4. Performing fuzzy matching of location names with administrative data
+      # 5. Filtering and selecting relevant columns
+      # 6. Joining with administrative data to add province information
+      # 7. Renaming columns and converting data types
+      # 8. Reordering columns
+      
+      df_match <- data.frame(district_tbl) %>%
+        # Extract the location information from the 'district_tbl' column and remove it from the original column
+        mutate(location_raw = str_extract(district_tbl, "^[^0-9]+"),
+               district_tbl = str_replace(district_tbl, "^[^0-9]+", "")) %>%
+        # Separate the 'district_tbl' column into 13 columns named 'X1' to 'X13'
+        separate(district_tbl, into = paste0("X", 1:13), sep = "\\s+", remove = TRUE, fill = "right") %>% 
+        # Trim whitespace from the 'location_raw' column
+        mutate(location_raw = str_trim(location_raw)) %>% 
+        # Remove specific patterns and words from the 'location_raw' column and store in 'location_tmp' # nolint
+        mutate(location_tmp = str_replace(location_raw, "\\*|[Pp]rov[íi]ncia", "")) %>% 
+        # Filter out rows where both 'location_raw' and 'X2' are missing
+        filter(!(is.na(location_raw) & is.na(X2))) %>% 
+        # Filter out rows containing the word "total" (case-insensitive) in 'location_raw'
+        filter(!grepl("total", location_raw, ignore.case = TRUE)) %>% 
+        # Replace specific city names with a standardized format in 'location_tmp'
+        mutate(location_tmp = case_when(
+          grepl("Matola", location_tmp, ignore.case=T) ~ str_replace_all(location_tmp, "(Matola)", "Cidade Da \\1"),
+          grepl("Chimoio|Pemba|Lichinga|Quelimane|Xai-Xai", location_tmp, ignore.case=T) ~ str_replace_all(location_tmp, "(Chimoio|Pemba|Lichinga|Quelimane|Xai-Xai)", "Cidade De \\1"),
+          .default = location_tmp
+        )) %>%   
+        # Handle cases where location data is spread across two consecutive rows
+        mutate(location_tmp = case_when(
+          !is.na(X13) & is.na(location_tmp) & is.na(lag(X13)) ~ lag(location_tmp),
+          TRUE ~ location_tmp
+        )) %>% 
+        # Filter out rows where 'X13' is missing
+        filter(!is.na(X13)) %>% 
+        # Apply fuzzy matching functions to find the best match for 'location_tmp' in 'admin2_data$ADM2_PT'
+        mutate(
+          best_seq_match = map_chr(location_tmp, ~best_seq_match(.x, admin2_data$ADM2_PT)[1]),
+          seq_ratio = as.double(map(location_tmp, ~best_seq_match(.x, admin2_data$ADM2_PT)[2])),
+        ) %>% 
+        # Assign the best match to 'location_match' if the match ratio is above 0.5, otherwise assign NA
+        mutate(location_match = ifelse(seq_ratio > 0.5, best_seq_match, NA)) %>%
+        # Assign 'location_match' to the 'district' column
+        mutate(district = location_match) %>% 
+        # Add an asterisk to the 'district_raw' column if 'location_raw' contains an asterisk
+        mutate(district_raw = ifelse(grepl("\\*", location_raw), paste0(district, "*"), district)) %>%
+        # Remove unnecessary columns
+        select(-starts_with("location"), -contains("seq"), -c(X12)) %>% 
+        # Reorder columns
+        select(district, district_raw, everything()) %>% 
+        # Join with 'admin2_data' to get the corresponding province information
+        left_join(admin2_data %>% select(ADM1_PT, ADM2_PT), by = c("district" = "ADM2_PT")) %>% 
+        # Rename 'ADM1_PT' to 'province'
+        rename(province = ADM1_PT) %>% 
+        # Convert columns 'X1' to 'X11' to integer type
+        mutate(across(c(X1:X11), as.integer), across(c(X13), as.double), ) %>% 
+        # Reorder columns with 'province' first
+        select(province, everything())
+      
+      # Get date from pdf file name
+      bulletin_data_path <- data.frame(summary_data_path ) %>%
+        # Extract the date string from each PDF file name using a regular expression
+        mutate(date_string = gsub(".*([0-9]{2}[\\.\\-][0-9]{2}[\\.\\-][0-9]{2,4}).*", "\\1", summary_data_path)) %>% 
+        # Convert the extracted date strings to date objects
+        mutate(date = dmy(date_string)) %>% 
+        # Arrange the dates in descending order
+        arrange(desc(date)) %>%
+        # Select the first row, which corresponds to the latest bulletin date
+        slice(1)
+      
+      # Calculate the difference in days between the latest bulletin date and the Excel base date ("1899-12-30")
+      # and store the result as a character value in the 'bulletin_date' variable
+      bulletin_date_excel <- convert_date_to_days(bulletin_data_path$date)
+      bulletin_date <- bulletin_data_path$date
+      
+      # rename column with Excel date to align with expected input in Dataload script
+      summary_data <- df_match %>% 
+        select(province, district = district_raw, X3) %>% 
+        rename(!!bulletin_date_excel := X3) %>% 
+        bind_rows(summary_data) %>% 
+        distinct()  # Remove duplicate rows
+      
+      # create bulletin_data from PDF
+      bulletin_data <- df_match %>% 
+        select(province, district = district_raw, cases_now = X3, deaths_now = X5)
+      
+      # Create temporary dataset to hold hospital data
+      buletin_active_data_tmp <- bulletin_active_data %>% 
+        mutate(district = case_when(
+          grepl("Matola", district, ignore.case=T) ~ str_replace_all(district, "(Matola)", "Cidade Da \\1"),
+          grepl("Chimoio|Pemba|Lichinga|Quelimane|Xai-Xai", district, ignore.case=T) ~ str_replace_all(district, "(Chimoio|Pemba|Lichinga|Quelimane|Xai-Xai)", "Cidade De \\1"),
+          .default = district
+        ))
+      
+      # create bulletin_activa_data from pdf
+      bulletin_active_data <- df_match %>% 
+        select(province, district = district_raw, cases_now = X3, hospitalized = X11, overall_incidence_rate = X13) %>% 
+        stringdist_left_join(buletin_active_data_tmp %>% select(province, district, capacity, population),
+                             by = c("province", "district"),
+                             method="lv", # Levenhstein distance
+                             max_dist = 1) %>% 
+        select(-ends_with(".y")) %>% 
+        rename(province = province.x, district = district.x) %>% 
+        mutate(occupancy_rate = hospitalized / capacity) %>% 
+        select(province, district, cases_now, hospitalized, capacity, occupancy_rate, population, overall_incidence_rate) %>% 
+        distinct()  %>% # Remove duplicate rows
+        filter(!grepl("surto|fim", district, ignore.case = TRUE))
+      
+    } else { # In case the files are excel by default
+      
+      summary_data <- summary_data_path %>% 
+        map(function(path){
+          sheet_names <- getSheetNames(path)
+          week_sheet <- sheet_names[startsWith(sheet_names, "Week")]
+          read.xlsx(path, sheet = week_sheet, check.names = F, startRow = 2, skipEmptyCols = FALSE) %>% 
+            select(2:10) %>% 
+            rename_with(~c("province", "district"), .cols=1:2) %>% 
+            fill(province, .direction = "down")
+        }) %>% 
+        reduce(bind_rows) %>% 
+        filter(!startsWith(district, "Total")) %>% 
+        bind_rows(summary_data) %>% 
+        distinct()  # Remove duplicate rows
+      
+      bulletin_data_path <- data.frame(summary_data_path) %>%
+        mutate(date_string = gsub(".*_([0-9]{2}\\.[0-9]{2}\\.[0-9]{2}) .*", "\\1", summary_data_path)) %>% 
+        mutate(date = dmy(date_string)) %>% 
+        arrange(desc(date)) %>%
+        slice(1)
+      
+      # get latest bulletin date
+      bulletin_date <- bulletin_data_path$date
+      
+      # get bulletin data
+      bulletin_data <- read.xlsx(bulletin_data_path$summary_data_path, sheet = 1, check.names = T, startRow = 3, cols = 2:8) %>% 
+        select(X1, X2, Casos, Óbitos) %>% 
+        rename_with(~c("province", "district", "cases_now", "deaths_now"), .cols = everything()) %>% 
+        fill(province, .direction = "down") %>%  # to fill with the last non-NA value above.
+        filter(!grepl("total", district, ignore.case = TRUE)) # remove Total rows
+      
+      # get active cases data and health system burden
+      bulletin_active_data <- read.xlsx(bulletin_data_path$summary_data_path, sheet = 4, check.names = T, startRow = 3, cols = 2:19) %>% 
+        select(X1, X2, Casos, X13:X15,X17:18) %>% 
+        rename_with(~c("province", "district", "cases_now", "hospitalized", "capacity","occupancy_rate","population", "overall_incidence_rate"), .cols = everything()) %>% 
+        fill(province, .direction = "down") %>%  # to fill with the last non-NA value above.
+        filter(!grepl("total", district, ignore.case = TRUE)) %>% 
+        distinct()  %>% # Remove duplicate rows
+        filter(!grepl("surto|fim", district, ignore.case = TRUE))
+      
+    }
     
     # move all existing bulletin files
     current_path <- summary_data_path

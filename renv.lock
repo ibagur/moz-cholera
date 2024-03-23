@@ -218,6 +218,17 @@
       ],
       "Hash": "df49e3306f232ec28f1604e36a202847"
     },
+    "RcppTOML": {
+      "Package": "RcppTOML",
+      "Version": "0.2.2",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp"
+      ],
+      "Hash": "c232938949fcd8126034419cc529333a"
+    },
     "Rttf2pt1": {
       "Package": "Rttf2pt1",
       "Version": "1.3.12",
@@ -1074,6 +1085,18 @@
         "tidyr"
       ],
       "Hash": "24af5fc67dbeaac6d776a8e6630aacd9"
+    },
+    "fuzzywuzzyR": {
+      "Package": "fuzzywuzzyR",
+      "Version": "1.0.5",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "R6",
+        "reticulate"
+      ],
+      "Hash": "2a34d8abfbc2972ee5a1d5cb34873767"
     },
     "gargle": {
       "Package": "gargle",
@@ -2138,6 +2161,17 @@
       ],
       "Hash": "3b5b99f4d3f067bb9c1d59317d071370"
     },
+    "pdftools": {
+      "Package": "pdftools",
+      "Version": "3.4.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "Rcpp",
+        "qpdf"
+      ],
+      "Hash": "9f04cfdc668ad1149d865a2996ac2045"
+    },
     "pillar": {
       "Package": "pillar",
       "Version": "1.9.0",
@@ -2390,6 +2424,18 @@
       ],
       "Hash": "1cba04a4e9414bdefc9dcaa99649a8dc"
     },
+    "qpdf": {
+      "Package": "qpdf",
+      "Version": "1.3.2",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "Rcpp",
+        "askpass",
+        "curl"
+      ],
+      "Hash": "e233fd211c74cb9297f4ab898ea2c18a"
+    },
     "quadprog": {
       "Package": "quadprog",
       "Version": "1.5-8",
@@ -2608,6 +2654,28 @@
         "stringr"
       ],
       "Hash": "bb5996d0bd962d214a11140d77589917"
+    },
+    "reticulate": {
+      "Package": "reticulate",
+      "Version": "1.35.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "Matrix",
+        "R",
+        "Rcpp",
+        "RcppTOML",
+        "graphics",
+        "here",
+        "jsonlite",
+        "methods",
+        "png",
+        "rappdirs",
+        "rlang",
+        "utils",
+        "withr"
+      ],
+      "Hash": "90be16b53b955990db4aa355c03d85eb"
     },
     "rlang": {
       "Package": "rlang",
