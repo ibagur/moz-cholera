@@ -47,5 +47,12 @@ RUN R -e "renv::restore()"
 
 EXPOSE 3838
 
+# Create a non-root user and change ownership
+RUN useradd -m shinyuser && \
+    chown -R shinyuser:shinyuser /app && \
+    chmod -R 755 /app
+
+USER shinyuser
+
 # Test to see if it can be run locally over standard web port
-CMD ["R", "-e", "shiny::runApp('./app.R', host='0.0.0.0', port=3838)"]
+CMD ["R", "-e", "shiny::runApp('./app.R', host='0.0.0.0', port=80)"]
