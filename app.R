@@ -1,6 +1,38 @@
 library(shiny)
 library(here)
 library(shinybusy)
+library(AzureStor)
+
+if (Sys.getenv("RUNNING_IN_AZURE") == "TRUE") {
+  
+  # Authenticate with Azure using your credentials
+  account <- "mozcholerastore"
+  container <- "mozcholeracontainer"
+  storage_key <- "62JeK6hUJWVVsFaT/BDWhTLGeczAkmOegnmdFlQzWToqIWTmadX29+ggv7yqMRylEdFH8AFzpDdl+ASt2yUFmg=="
+  endpoint <- paste0("https://", account, ".blob.core.windows.net")
+  endp <- storage_endpoint(endpoint = endpoint, key = storage_key)
+  cont <- storage_container(endpoint = endp, name = container)
+  
+  if (!storage_dir_exists(container = cont, dir = "plots")) {
+    
+    local_dir <- paste(here("plots"), "*.png", sep = "/")
+    storage_multiupload(container = cont, src = local_dir, dest = "plots")
+    
+    local_dir <- paste(here("rdas"), "*.RData", sep = "/")
+    storage_multiupload(container = cont, src = local_dir, dest = "rdas")
+    
+  } else {
+    # retrieve RData from blob 
+    blob_name <- "rdas/*.RData"
+    local_dir <- here("rdas")
+    storage_multidownload(container = cont, src = blob_name, dest = local_dir, overwrite = TRUE)
+    
+    # retrieve plot files from blob
+    blob_name <- "plots/*.png"
+    local_dir <- here("plots")
+    storage_multidownload(container = cont, src = blob_name, dest = local_dir, overwrite = TRUE)
+  }
+}
 
 # Define the UI
 ui <- fluidPage(

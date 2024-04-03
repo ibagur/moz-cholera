@@ -49,3 +49,15 @@ name_tbl <- substitute(district_daily_export_wide_tbl)
 
 excel_file <- paste0(name_tbl, ".xlsx")
 saveWorkbook(wb, file = paste(output_dir, excel_file, sep = "/"), overwrite = TRUE)
+
+
+# Update Azure Blobs -----
+if (flag_azure == "TRUE") {
+  
+  local_dir <- paste(here("plots"), "*.png", sep = "/")
+  storage_multiupload(container = cont, src = local_dir, dest = "plots")
+  
+  local_dir <- paste(here("rdas"), "*.RData", sep = "/")
+  storage_multiupload(container = cont, src = local_dir, dest = "rdas")
+  
+}

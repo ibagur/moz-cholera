@@ -1,6 +1,18 @@
 # for R shiny to run
 tool_name <- "moz-cholera"
 
+if (Sys.getenv("RUNNING_IN_AZURE") == "TRUE") {
+  flag_azure = TRUE
+  # Authenticate with Azure using your credentials
+  account <- "mozcholerastore"
+  container <- "mozcholeracontainer"
+  storage_key <- "62JeK6hUJWVVsFaT/BDWhTLGeczAkmOegnmdFlQzWToqIWTmadX29+ggv7yqMRylEdFH8AFzpDdl+ASt2yUFmg=="
+  endpoint <- paste0("https://", account, ".blob.core.windows.net")
+  endp <- storage_endpoint(endpoint = endpoint, key = storage_key)
+  cont <- storage_container(endpoint = endp, name = container)
+} else {
+  flag_azure = FALSE
+}
 
 # project data directories
 data_dir <- here("data")

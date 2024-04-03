@@ -127,6 +127,7 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
 } else {
   
   load(file = paste(rda_dir, "dataload.RData", sep = "/"), verbose = F)
+  load(file = paste(rda_dir, "aux_dataload.RData", sep = "/"), verbose = F)
   
   summary_data_path <- dataset_path[grep(paste0("*.DVS.*"), dataset_path)]
   extension <- tolower(tools::file_ext(summary_data_path))

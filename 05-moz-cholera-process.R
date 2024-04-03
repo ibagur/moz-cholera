@@ -333,7 +333,7 @@ bulletin_active_data_adm2_tbl <- bulletin_active_data %>%
   select(ADM1_PT, district, everything()) %>%
   stringdist_left_join(admin2_data %>% select(ADM1_PT, ADM1_PCODE, ADM2_PT, ADM2_PCODE, AREA_SQKM),
                        by = c("province"="ADM1_PT", "district"="ADM2_PT"),
-                       method="lv", # Jaro-Winkler distance
+                       method="lv", # Levenhstein distance
                        max_dist = 1) %>%
   mutate(ADM1_PCODE = ADM1_PCODE.y, ADM1_PT = ADM1_PT.y) %>% # to fix bad province names
   select(-c(ADM1_PT.x, ADM1_PCODE.x)) %>%
@@ -345,6 +345,12 @@ bulletin_active_data_adm2_tbl <- bulletin_active_data %>%
   mutate(date = bulletin_date) %>% 
   mutate (week = format(date, "%Y-%W")) %>% 
   select(week, date, everything()) %>% 
+  left_join(district_pop_capacity_tbl %>% select(ADM2_PCODE, capacity, population), by = c("ADM2_PCODE")) %>% 
+  rename(capacity = capacity.y, population = population.y) %>% 
+  select(-c(capacity.x, population.x, ADM1_PT.y, ADM1_PCODE.y)) %>% 
+  mutate(occupancy_rate = hospitalized / capacity) %>% 
+  relocate(capacity, .after = hospitalized) %>% 
+  relocate(population, .after = occupancy_rate) %>% 
   filter(occupancy_rate > 0)
   
 # Partnership data -----
