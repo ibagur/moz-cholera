@@ -42,17 +42,26 @@ COPY . /app
 
 WORKDIR /app
 
-# Restor R environment
+# Create a non-root user 'shinyuser' before setting up the renv cache
+RUN useradd -m shinyuser
+
+# Set the RENV_PATHS_CACHE to use a directory within /app for the cache
+ENV RENV_PATHS_CACHE=/app/renv/cache
+
+# Ensure the directory exists and has the right permissions
+RUN mkdir -p /app/renv/cache && \
+    chown -R shinyuser:shinyuser /app
+
+# Restore R environment
 RUN R -e "renv::restore()"
 
 EXPOSE 3838
 
-# Create a non-root user and change ownership
-RUN useradd -m shinyuser && \
-    chown -R shinyuser:shinyuser /app && \
+# Change ownership to 'shinyuser' (this is now redundant but left for clarity, the line above already ensures correct ownership)
+RUN chown -R shinyuser:shinyuser /app && \
     chmod -R 755 /app
 
 USER shinyuser
 
 # Test to see if it can be run locally over standard web port
-CMD ["R", "-e", "shiny::runApp('./app.R', host='0.0.0.0', port=80)"]
+CMD ["R", "-e", "shiny::runApp('./app.R', host='0.0.0.0', port=8080)"]
