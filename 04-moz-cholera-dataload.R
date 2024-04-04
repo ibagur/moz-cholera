@@ -189,6 +189,19 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
           !is.na(X13) & is.na(location_tmp) & is.na(lag(X13)) ~ lag(location_tmp),
           TRUE ~ location_tmp
         )) %>% 
+        # Handle situation with Maputo City an pdf row spread on two rows
+        mutate(
+          HasDecimal = grepl("\\d+\\.\\d+", X5) # Identify rows with decimals in X5
+        ) %>%
+        mutate(
+          X13 = if_else(HasDecimal, "0.0", as.character(X13)), # Update X13 where HasDecimal is TRUE
+          across(
+            .cols = X1:X5,
+            .fns = ~if_else(HasDecimal, lead(., default = last(.)), .),
+            .names = "{.col}" # Preserve original column names
+          )
+        ) %>%
+        select(-HasDecimal) %>%         
         # Filter out rows where 'X13' is missing
         filter(!is.na(X13)) %>% 
         # Apply fuzzy matching functions to find the best match for 'location_tmp' in 'admin2_data$ADM2_PT'
