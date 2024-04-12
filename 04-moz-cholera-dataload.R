@@ -173,7 +173,7 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
         # Trim whitespace from the 'location_raw' column
         mutate(location_raw = str_trim(location_raw)) %>% 
         # Remove specific patterns and words from the 'location_raw' column and store in 'location_tmp' # nolint
-        mutate(location_tmp = str_replace(location_raw, "\\*|[Pp]rov[íi]ncia", "")) %>% 
+        mutate(location_tmp = str_replace(location_raw, "\\*|[Pp]rov[\\s]*[íi]ncia", "")) %>% 
         # Filter out rows where both 'location_raw' and 'X2' are missing
         filter(!(is.na(location_raw) & is.na(X2))) %>% 
         # Filter out rows containing the word "total" (case-insensitive) in 'location_raw'
