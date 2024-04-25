@@ -49,6 +49,7 @@ ui <- fluidPage(
       wellPanel(
         textOutput("result")
       ),
+      uiOutput("downloadButton0"),
       uiOutput("downloadButton1"),  # Placeholder for the first download button
       uiOutput("downloadButton2"),  # Repeat for each plot
       uiOutput("downloadButton3"),
@@ -207,6 +208,10 @@ server <- function(input, output) {
     })  
   
     # Assume the plot is saved as 'plot.pdf' in a known directory
+    plotPath0 <- reactive({
+      here("R", "moz-cholera", "plots", "cholera_partners_map.pdf")
+    })
+    
     plotPath1 <- reactive({
       here("plots", "cholera_map.pdf")
     })
@@ -302,6 +307,10 @@ server <- function(input, output) {
     })
     
     # After the plot is generated, display the download button
+    output$downloadButton0 <- renderUI({
+      downloadButton("downloadPlot0", "Download map (with partners)", style = "margin-bottom: 10px;")
+    })
+    
     output$downloadButton1 <- renderUI({
       downloadButton("downloadPlot1", "Download map", style = "margin-bottom: 10px;")
     })
@@ -331,6 +340,15 @@ server <- function(input, output) {
     })
 
     # Add this block for the download handler
+    output$downloadPlot0 <- downloadHandler(
+      filename = function() {
+        "cholera_partners_map.pdf"
+      },
+      content = function(file) {
+        file.copy(plotPath0(), file)
+      }
+    )
+    
     output$downloadPlot1 <- downloadHandler(
       filename = function() {
         "cholera_map.pdf"

@@ -502,7 +502,6 @@ cholera_data_adm2_prev <- cholera_data_district %>%
   filter(!(ADM2_PT %in% c("Maquival", "Lago Niassa", "Cidade De Maputo"))) %>% 
   select(-district, -province, -dist)
 
-
 # Join last bulletin data with prev cholera dataset
 cholera_data_adm2 <- cholera_data_adm2_prev %>% 
   left_join(bulletin_data_adm2 %>% select(ADM1_PCODE, ADM2_PCODE, cases_now, deaths_now, district_raw), by = c("ADM1_PCODE", "ADM2_PCODE")) %>% 
@@ -511,7 +510,8 @@ cholera_data_adm2 <- cholera_data_adm2_prev %>%
   mutate(deaths_now = deaths_now) %>% 
   mutate(cholera_declared_flag = case_when (
     !is.na(cases_now) ~ 1,
-    .default = cholera_declared_flag
+    #.default = cholera_declared_flag
+    .default = NA
   )
   ) %>% # check if cases declared now, preserve also original clasification
   mutate(cholera_ended_flag = if_else(grepl("\\*", district_raw), 1, NA)) %>% # check end cholera 
@@ -567,6 +567,32 @@ cholera_data_adm2 <- cholera_data_adm2_prev %>%
   select(ADM1_PT, ADM1_PCODE, ADM2_PT, ADM2_PCODE, everything()) %>% 
   arrange(ADM1_PCODE, ADM2_PCODE)
 
+if (activos_pdf_flag) {
+  
+  # Load saved cholera_data_adm2_bak
+  load(file = paste(rda_dir, "cholera_data_adm2_bak.RData", sep = "/"), verbose = F)
+  
+  # Join by adm2_pcode
+  # Update cholera_ended_flag: cholera_declared_flag_bak == 1 & is.na(cholera_declared_flag) -> cholera_ended_flag = 1
+  cholera_data_adm2 <- cholera_data_adm2 %>% 
+    left_join(cholera_data_adm2_bak, by = "ADM2_PCODE") %>% 
+    mutate(cholera_ended_flag.x = if_else((cholera_declared_flag.y == 1 & is.na(cases_now)), 1, cholera_ended_flag.x)) %>% 
+    rename_with(~ gsub("\\.x$", "", .x), ends_with(".x")) %>% 
+    mutate(fill_color = "white") %>% 
+    mutate(fill_color = if_else(!is.na(cases_sep_2023), UNICEF_PALETTE_YELLOWS[3], fill_color)) %>% #yellow
+    mutate(fill_color = if_else(!is.na(cholera_ended_flag), UNICEF_PALETTE_YELLOWS[3], fill_color)) %>% #yellow
+    mutate(fill_color = ifelse(!is.na(cholera_declared_flag), UNICEF_PALETTE[6], fill_color)) %>% #red
+    select(-ends_with(".y"))
+  
+} else {
+  
+  cholera_data_adm2_bak <- cholera_data_adm2 %>% select(ADM2_PCODE, cholera_declared_flag, cholera_ended_flag, fill_color)
+  # save to RData
+  save(
+    cholera_data_adm2_bak,
+    file = paste(rda_dir, "cholera_data_adm2_bak.RData", sep = "/"))
+}
+
 # EXPORT post-processing -----
 
 ## Partnership data for Excel tool -----
@@ -598,7 +624,14 @@ district_daily_export_tbl <- district_daily_cumul_tbl %>%
 district_daily_export_wide_tbl <- district_daily_export_tbl %>% 
   select(date, province, ADM1_PCODE, district, ADM2_PCODE, cases) %>% 
   pivot_wider(names_from = date, values_from = cases, values_fill = 0, names_sort = TRUE) %>%
+  left_join(cholera_data_adm2 %>% select(ADM2_PCODE, cholera_declared_flag), by = "ADM2_PCODE") %>% 
+  mutate(active_cholera = if_else(!is.na(cholera_declared_flag), "Yes", "")) %>% 
+  select(-cholera_declared_flag) %>% 
+  rename_with(~ gsub("\\.x$", "", .x), ends_with(".x")) %>% 
+  select(-ends_with(".y")) %>% 
+  select(province, ADM1_PCODE, district, ADM2_PCODE, active_cholera , everything()) %>% 
   arrange(ADM1_PCODE, ADM2_PCODE)
+
 
 # For all plots -----
 

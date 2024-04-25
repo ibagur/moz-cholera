@@ -141,8 +141,14 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
       # Extract text from the PDF file
       txt <- pdf_text(summary_data_path)
       
-      # Select pages 3 and 4 from the extracted text
-      pdf_tbl <- paste(txt[3], txt[4])
+      # Select pages 3 and 4 from the extracted text / or only page 3 if a 'activos' pdf is uploaded
+      if (grepl("activos", summary_data_path)) {
+        pdf_tbl <- txt[3]
+        activos_pdf_flag = TRUE
+      } else {
+        pdf_tbl <- paste(txt[3], txt[4])
+        activos_pdf_flag = FALSE
+      }
       
       # Split the selected text into rows
       tmp <- strsplit(pdf_tbl, "\n")
@@ -201,20 +207,23 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
             .names = "{.col}" # Preserve original column names
           )
         ) %>%
+        mutate (X13 = if_else(grepl("ambique", location_tmp), "0.0", X13)) %>% 
         select(-HasDecimal) %>%         
         # Filter out rows where 'X13' is missing
         filter(!is.na(X13)) %>% 
+        filter(!is.na(location_raw)) %>% 
         # Apply fuzzy matching functions to find the best match for 'location_tmp' in 'admin2_data$ADM2_PT'
         mutate(
           best_seq_match = map_chr(location_tmp, ~best_seq_match(.x, admin2_data$ADM2_PT)[1]),
           seq_ratio = as.double(map(location_tmp, ~best_seq_match(.x, admin2_data$ADM2_PT)[2])),
         ) %>% 
         # Assign the best match to 'location_match' if the match ratio is above 0.5, otherwise assign NA
-        mutate(location_match = ifelse(seq_ratio > 0.5, best_seq_match, NA)) %>%
+        mutate(location_match = ifelse(seq_ratio > 0.47, best_seq_match, NA)) %>%
         # Assign 'location_match' to the 'district' column
         mutate(district = location_match) %>% 
         # Add an asterisk to the 'district_raw' column if 'location_raw' contains an asterisk
         mutate(district_raw = ifelse(grepl("\\*", location_raw), paste0(district, "*"), district)) %>%
+        #mutate(active_flag = ifelse(grepl("\\*", location_raw), FALSE, TRUE)) %>% # add ACTIVE FLAG
         # Remove unnecessary columns
         select(-starts_with("location"), -contains("seq"), -c(X12)) %>% 
         # Reorder columns

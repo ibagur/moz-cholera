@@ -123,7 +123,7 @@ map <- tm_shape(cholera_adm2_map) +
       adm1_map$adm1_pt == "Manica" ~ 2 + 0.6,
       adm1_map$adm1_pt == "Sofala" ~ 0.3 + 0.6,
       .default = 0.6
-      ),
+    ),
     shadow = F,
     remove.overlap = T) +
   tm_shape(africa_adm0_map) +
@@ -147,22 +147,22 @@ map <- tm_shape(cholera_adm2_map) +
       .default = 0
     )) +
   tm_scale_bar(lwd=0.5) +
-    tm_compass(type = "arrow", position = c("left", "top")) + 
-    tm_add_legend("symbol", 
-                  # labels = c("Number of UNICEF partners in current and recently affected districts", "Districts with usual cholera hotspots (prior to 2022)", "Districts recently affected by cholera, but currently inactive", paste0("Active cholera districts (", max_date_1,")")),  # Replace with actual labels
-                  # col = c(UNICEF_PALETTE[1], "white", UNICEF_PALETTE_YELLOWS[3], UNICEF_PALETTE[6]),
-                  # shape = c(21,22,22,22),
-                  labels = c("# of NGO partners in active and recently affected districts",
-                             "# of Government partners in active and recently affected districts", 
-                             "Districts recently affected by cholera, but currently inactive", 
-                             paste0("Active cholera districts (", max_date_1,")")),  # Replace with actual labels
-                  col = c(UNICEF_PALETTE[1], UNICEF_PALETTE[2], UNICEF_PALETTE_YELLOWS[3], UNICEF_PALETTE[6]),
-                  shape = c(21,21,22,22),
-                  size = 1,
-                  border.lwd = 0.5,
-                  border.col = "white",
-                  reverse = T
-    ) + 
+  tm_compass(type = "arrow", position = c("left", "top")) + 
+  tm_add_legend("symbol", 
+                # labels = c("Number of UNICEF partners in current and recently affected districts", "Districts with usual cholera hotspots (prior to 2022)", "Districts recently affected by cholera, but currently inactive", paste0("Active cholera districts (", max_date_1,")")),  # Replace with actual labels
+                # col = c(UNICEF_PALETTE[1], "white", UNICEF_PALETTE_YELLOWS[3], UNICEF_PALETTE[6]),
+                # shape = c(21,22,22,22),
+                labels = c("# of NGO partners in active and recently affected districts",
+                           "# of Government partners in active and recently affected districts", 
+                           "Districts recently affected by cholera, but currently inactive", 
+                           paste0("Active cholera districts (", max_date_1,")")),  # Replace with actual labels
+                col = c(UNICEF_PALETTE[1], UNICEF_PALETTE[2], UNICEF_PALETTE_YELLOWS[3], UNICEF_PALETTE[6]),
+                shape = c(21,21,22,22),
+                size = 1,
+                border.lwd = 0.5,
+                border.col = "white",
+                reverse = T
+  ) + 
   tm_layout(
     frame = FALSE,
     legend.text.size=0.7,
@@ -174,13 +174,131 @@ map <- tm_shape(cholera_adm2_map) +
 
 #print(map)
 
-tmap_save(map, filename = paste(plot_dir, "cholera_map.pdf", sep = "/"), width  = 8.27, height= 11.69, dpi=600)
-tmap_save(map, filename = paste(plot_dir, "cholera_map.png", sep = "/"), width  = 8.27, height= 11.69, dpi=150)
+tmap_save(map, filename = paste(plot_dir, "cholera_partners_map.pdf", sep = "/"), width  = 8.27, height= 11.69, dpi=600)
+tmap_save(map, filename = paste(plot_dir, "cholera_partners_map.png", sep = "/"), width  = 8.27, height= 11.69, dpi=150)
 
 # Leaflet
 # map_leaflet <- tmap_leaflet(map)
 # saveWidget(map_leaflet, selfcontained = TRUE, file = paste(plot_dir, "map_mpc.html", sep = "/"))
 
+
+## Cholera outbreak district map (no partners) -----
+
+cholera_adm2_map <- adm2_map %>% 
+  left_join(cholera_data_adm2, by=c("adm2_pcode"="ADM2_PCODE")) 
+
+# # Create pattern sfc layer
+# cholera_adm2_sfc <- cholera_adm2_map %>% 
+#   filter(!is.na(zq) | !is.na(zar)) %>% 
+#   hatchedLayer("right2left", density = 7, mode= "sfc")
+# 
+# # Create sf object for map plot
+# cholera_adm2_patterns <- st_sf(geometry = cholera_adm2_sfc)
+
+tmap_mode("plot")
+
+map <- tm_shape(cholera_adm2_map) + 
+  tm_fill(
+    col = "fill_color",
+    textNA = "No data",
+  ) +
+  # tm_shape(cholera_adm2_patterns) +
+  # tm_lines(col = "grey40", lwd = 0.5) +
+  # tm_text(
+  #   text = "adm1_pt",
+  #   size = 0.9,
+  #   col = "#505050",
+  #   shadow = F,
+  #   remove.overlap = F) +
+  tm_shape(africa_adm0_map) +
+  tm_polygons(col = "grey90", lwd = 0.5) +
+  tm_shape(mwi_adm2_map) +
+  tm_borders(lwd = 0.3) +
+  tm_text(
+    text = "ADM2_EN",
+    size = 0.4,
+    col = "grey40"
+  ) +
+  tm_shape(zwe_adm2_map) +
+  tm_borders(lwd = 0.3) +
+  tm_text(
+    text = "ADM2_EN",
+    size = 0.4,
+    col = "grey40"
+  ) +
+  tm_shape(zmb_adm2_map) +
+  tm_borders(lwd = 0.3) +
+  tm_text(
+    text = "ADM2_EN",
+    size = 0.4,
+    col = "grey40"
+  ) +
+  tm_shape(adm1_map) +
+  tm_borders(lwd = 1.3) +
+  tm_shape(cholera_adm2_map) + 
+  tm_borders(lwd = 0.3) +
+  tm_text(
+    text = "adm2_pt_filtered",
+    size = 0.5,
+    ymod = 0.6,
+    remove.overlap = F) +
+  tm_shape(adm1_map) +
+  tm_text(
+    text = "adm1_pt",
+    col = "grey30",
+    size = 1,
+    ymod = case_when(
+      adm1_map$adm1_pt == "Cabo Delgado" ~ 0.5 + 0.6,
+      adm1_map$adm1_pt == "Manica" ~ 2 + 0.6,
+      adm1_map$adm1_pt == "Sofala" ~ 0.3 + 0.6,
+      .default = 0.6
+    ),
+    shadow = F,
+    remove.overlap = T) +
+  tm_shape(africa_adm0_map) +
+  tm_text(
+    text = "adm0_name_wrap",
+    col = "grey40",
+    size = 0.7,
+    xmod = case_when(
+      africa_adm0_map$ISO3 == "ZWE" ~ 4,
+      africa_adm0_map$ISO3 == "ZMB" ~ 11,
+      africa_adm0_map$ISO3 == "MWI" ~ -1,
+      africa_adm0_map$ISO3 == "ZAF" ~ 18,
+      africa_adm0_map$ISO3 == "TZA" ~ 8,
+      africa_adm0_map$ISO3 == "SWZ" ~ 0,
+      .default = 0
+    ),
+    ymod = case_when(
+      africa_adm0_map$ISO3 == "ZAF" ~ 13,
+      africa_adm0_map$ISO3 == "TZA" ~ -15,
+      africa_adm0_map$ISO3 == "ZMB" ~ 3,
+      .default = 0
+    )) +
+  tm_scale_bar(lwd=0.5) +
+  tm_compass(type = "arrow", position = c("left", "top")) + 
+  tm_add_legend("symbol", 
+                labels = c(
+                  "Districts recently affected by cholera, but currently inactive", 
+                  paste0("Active cholera districts (", max_date_1,")")),  # Replace with actual labels
+                col = c(UNICEF_PALETTE_YELLOWS[3], UNICEF_PALETTE[6]),
+                shape = c(22,22),
+                size = 1,
+                border.lwd = 0.5,
+                border.col = "white",
+                reverse = T
+  ) + 
+  tm_layout(
+    frame = FALSE,
+    legend.text.size=0.7,
+    legend.width = 1,
+    legend.position = c(0.45, 0.05), 
+    fontface = "plain",
+    fontfamily = font_name, 
+    attr.color = UNICEF_PALETTE[11])
+
+tmap_save(map, filename = paste(plot_dir, "cholera_map.pdf", sep = "/"), width  = 8.27, height= 11.69, dpi=600)
+tmap_save(map, filename = paste(plot_dir, "cholera_map.png", sep = "/"), width  = 8.27, height= 11.69, dpi=150)
 
 # PLOTS -------------------------------------------------------------------
 
@@ -248,7 +366,8 @@ ggsave(plot = p, filename = plot_file_nodate_png, width = 12, height = 8, dpi = 
 data <- province_weekly_tbl %>% 
   filter(n_days == 7) %>%
   filter(!is.na(ADM1_PCODE)) %>% 
-  filter(total_cases !=0)
+  filter(total_cases !=0) %>% 
+  filter(grepl("2024", week))
 
 max_week <- max(data$week)
 
@@ -260,7 +379,7 @@ province_weekly_bar_plot <- ggplot(data, aes(x = week, y = total_cases, fill = A
   scale_fill_manual(values = UNICEF_PALETTE) +
   theme_bw() +
   theme(axis.title.x=element_blank(),
-        axis.text.x = element_text(size = 12),
+        axis.text.x = element_text(size = 11),
         axis.ticks.x=element_blank(),
         axis.title.y=element_blank(),
         axis.ticks.y=element_blank(),
