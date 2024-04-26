@@ -575,7 +575,7 @@ if (activos_pdf_flag) {
   # Join by adm2_pcode
   # Update cholera_ended_flag: cholera_declared_flag_bak == 1 & is.na(cholera_declared_flag) -> cholera_ended_flag = 1
   cholera_data_adm2 <- cholera_data_adm2 %>% 
-    left_join(cholera_data_adm2_bak, by = "ADM2_PCODE") %>% 
+    full_join(cholera_data_adm2_bak, by = "ADM2_PCODE") %>% 
     mutate(cholera_ended_flag.x = if_else((cholera_declared_flag.y == 1 & is.na(cases_now)), 1, cholera_ended_flag.x)) %>% 
     rename_with(~ gsub("\\.x$", "", .x), ends_with(".x")) %>% 
     mutate(fill_color = "white") %>% 
