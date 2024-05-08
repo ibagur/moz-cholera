@@ -195,6 +195,10 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
           !is.na(X13) & is.na(location_tmp) & is.na(lag(X13)) ~ lag(location_tmp),
           TRUE ~ location_tmp
         )) %>% 
+        mutate(location_raw = case_when(
+          !is.na(X13) & is.na(location_raw) & is.na(lag(X13)) ~ lag(location_raw),
+          TRUE ~ location_raw
+        )) %>% 
         # Handle situation with Maputo City an pdf row spread on two rows
         mutate(
           HasDecimal = grepl("\\d+\\.\\d+", X5) # Identify rows with decimals in X5

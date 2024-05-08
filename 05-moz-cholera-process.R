@@ -625,7 +625,7 @@ district_daily_export_wide_tbl <- district_daily_export_tbl %>%
   select(date, province, ADM1_PCODE, district, ADM2_PCODE, cases) %>% 
   pivot_wider(names_from = date, values_from = cases, values_fill = 0, names_sort = TRUE) %>%
   left_join(cholera_data_adm2 %>% select(ADM2_PCODE, cholera_declared_flag), by = "ADM2_PCODE") %>% 
-  mutate(active_cholera = if_else(!is.na(cholera_declared_flag), "Yes", "")) %>% 
+  mutate(active_cholera = if_else(!is.na(cholera_declared_flag), "yes", "")) %>% 
   select(-cholera_declared_flag) %>% 
   rename_with(~ gsub("\\.x$", "", .x), ends_with(".x")) %>% 
   select(-ends_with(".y")) %>% 
