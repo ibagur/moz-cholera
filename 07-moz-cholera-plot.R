@@ -374,12 +374,12 @@ max_week <- max(data$week)
 province_weekly_bar_plot <- ggplot(data, aes(x = week, y = total_cases, fill = ADM1_PT)) +
   geom_bar(stat = "identity", color = "white", size = 0.6) +
   geom_text(aes(label=total_cases),
-            position=position_stack(vjust=0.5), colour="white", size = 5, family = font_name, fontface = "bold") +
+            position=position_stack(vjust=0.5), colour="white", size = 4, family = font_name, fontface = "bold") +
   theme_minimal() +
   scale_fill_manual(values = UNICEF_PALETTE) +
   theme_bw() +
   theme(axis.title.x=element_blank(),
-        axis.text.x = element_text(size = 11),
+        axis.text.x = element_text(size = 9),
         axis.ticks.x=element_blank(),
         axis.title.y=element_blank(),
         axis.ticks.y=element_blank(),
