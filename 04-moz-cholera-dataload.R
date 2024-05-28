@@ -142,7 +142,7 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
       txt <- pdf_text(summary_data_path)
       
       # Select pages 3 and 4 from the extracted text / or only page 3 if a 'activos' pdf is uploaded
-      if (grepl("activos", summary_data_path)) {
+      if (grepl("activos", summary_data_path) || length(txt) == 6) {
         pdf_tbl <- txt[3]
         activos_pdf_flag = TRUE
       } else {

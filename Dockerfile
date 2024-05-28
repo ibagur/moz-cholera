@@ -64,4 +64,6 @@ RUN chown -R shinyuser:shinyuser /app && \
 USER shinyuser
 
 # Test to see if it can be run locally over standard web port
-CMD ["R", "-e", "shiny::runApp('./app.R', host='0.0.0.0', port=8080)"]
+#CMD ["R", "-e", "shiny::runApp('./app.R', host='0.0.0.0', port=8080)"]
+# Back to default port 
+CMD ["R", "-e", "shiny::runApp('./app.R', host='0.0.0.0', port=3838)"]
