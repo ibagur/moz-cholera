@@ -63,7 +63,7 @@ RUN chown -R shinyuser:shinyuser /app && \
 
 USER shinyuser
 
-# Test to see if it can be run locally over standard web port
+# Test to see if it can be run locally over standard web port. Port 8080 for using in Azure
 #CMD ["R", "-e", "shiny::runApp('./app.R', host='0.0.0.0', port=8080)"]
 # Back to default port 
 CMD ["R", "-e", "shiny::runApp('./app.R', host='0.0.0.0', port=3838)"]

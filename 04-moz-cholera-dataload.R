@@ -75,7 +75,6 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
     fill(province, .direction = "down") %>%  # to fill with the last non-NA value above.
     filter(!grepl("total", district, ignore.case = TRUE)) # remove Total rows
   
-  
   # get active cases data and health system burden
   bulletin_active_data <- read.xlsx(bulletin_data_path$summary_data_path, sheet = 4, check.names = T, startRow = 3, cols = 2:19) %>% 
     select(X1, X2, Casos, X13:X15,X17:18) %>% 

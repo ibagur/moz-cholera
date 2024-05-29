@@ -1,8 +1,9 @@
 library(shiny)
 library(here)
 library(shinybusy)
-library(AzureStor)
+library(AzureStor) # Load library to deal with Azure connections
 
+# This is only used in case the Docker container is deployed under Azure
 if (Sys.getenv("RUNNING_IN_AZURE") == "TRUE") {
   
   # Authenticate with Azure using your credentials
@@ -34,7 +35,7 @@ if (Sys.getenv("RUNNING_IN_AZURE") == "TRUE") {
   }
 }
 
-# Define the UI
+# Define the ShinyApp UI
 ui <- fluidPage(
   #add_busy_spinner(spin = "fading-circle", position = "top-right"),
   add_busy_gif(src = "https://raw.githubusercontent.com/ibagur/images/main/unicef_logo_clockwise.gif", position = "top-right", height = 80, width = 80),
