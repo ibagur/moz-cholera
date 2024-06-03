@@ -9,7 +9,7 @@ if (Sys.getenv("RUNNING_IN_AZURE") == "TRUE") {
   # Authenticate with Azure using your credentials
   account <- "mozcholerastore"
   container <- "mozcholeracontainer"
-  storage_key <- "62JeK6hUJWVVsFaT/BDWhTLGeczAkmOegnmdFlQzWToqIWTmadX29+ggv7yqMRylEdFH8AFzpDdl+ASt2yUFmg=="
+  storage_key <- "" # add Azure Storage key
   endpoint <- paste0("https://", account, ".blob.core.windows.net")
   endp <- storage_endpoint(endpoint = endpoint, key = storage_key)
   cont <- storage_container(endpoint = endp, name = container)
