@@ -186,6 +186,7 @@ if (!file.exists(paste(rda_dir, "dataload.RData", sep = "/"))) {
         # Replace specific city names with a standardized format in 'location_tmp'
         mutate(location_tmp = case_when(
           grepl("Matola", location_tmp, ignore.case=T) ~ str_replace_all(location_tmp, "(Matola)", "Cidade Da \\1"),
+          grepl("Manhica", location_tmp, ignore.case=T) ~ str_replace_all(location_tmp, "Manhica", "Manhiça"),
           grepl("Chimoio|Pemba|Lichinga|Quelimane|Xai-Xai", location_tmp, ignore.case=T) ~ str_replace_all(location_tmp, "(Chimoio|Pemba|Lichinga|Quelimane|Xai-Xai)", "Cidade De \\1"),
           .default = location_tmp
         )) %>%   
